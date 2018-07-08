@@ -14,7 +14,7 @@ class SignInWidget(QWidget):
 
     def __init__(self):
         super(SignInWidget, self).__init__()
-        self.setFixedSize(230, 300)
+        self.setFixedSize(250, 300)
         self.setWindowTitle("NCD")
         self.setUpUI()
 #        self.setWindowFlags(Qt.FramelessWindowHint)  #设置标题栏透明
@@ -126,31 +126,50 @@ class listWindow(QWidget):
 
     def setUI(self):
 
-        self.bnt1 = QPushButton('bnt1')
-        self.bnt2 = QPushButton('bnt2')
+        self.bnt1 = QPushButton('个人信息')
+        self.bnt2 = QPushButton('登记')
+        self.bnt3 = QPushButton('查询')
         self.bnt1.clicked.connect(self.userChange)
-        self.bnt1.clicked.connect(self.close)
         self.bnt2.clicked.connect(self.backClick)
-        self.bnt2.clicked.connect(self.close)
+        self.bnt3.clicked.connect(self.queryClick)
 
-        self.hbox = QHBoxLayout()
-        self.hbox.addWidget(self.bnt1)
-        self.hbox.addWidget(self.bnt2)
+        self.mainlayout = QVBoxLayout()
+        self.lvl1layout = QHBoxLayout()
 
-        self.setLayout(self.hbox)
+        self.lvl1layout.addWidget(self.bnt2)
+        self.lvl1layout.addWidget(self.bnt3)
+        self.lvl1layout.addWidget(self.bnt1)
+        self.bnt1.setFixedSize(120,120)
+        self.bnt2.setFixedSize(120,120)
+        self.bnt3.setFixedSize(120,120)
+        self.bnt1.setStyleSheet('QPushButton{background-color:green;color:white;font-size:30px;}')
+        self.bnt2.setStyleSheet('QPushButton{background-color:green;color:white;font-size:30px;}')
+        self.bnt3.setStyleSheet('QPushButton{background-color:green;color:white;font-size:30px;}')
+
+        self.v2box = QWidget()
+        self.v2box.setLayout(self.lvl1layout)
+        self.mainlayout.addWidget(self.v2box)
+        self.setLayout(self.mainlayout)
 
     def backClick(self):
-        self.a = listWindow()
+        self.close()
+        self.a = registWindow()
         self.a.show()
 
     def userChange(self):
-        self.a = userInfo()
+        self.close()
+        self.a = userInfoWindow()
         self.a.show()
 
-class userInfo(QWidget):
+    def queryClick(self):
+        self.close()
+
+
+
+class userInfoWindow(QWidget):
 
     def __init__(self):
-        super(userInfo,self).__init__()
+        super(userInfoWindow,self).__init__()
         self.setWindowTitle('user infomation')
         self.setFixedSize(300,400)
         self.setUi()
@@ -248,6 +267,61 @@ class userInfo(QWidget):
                 infolist.append(i[j])
         db.close()
         return infolist
+
+class registWindow(QWidget):
+    def __init__(self):
+        super(registWindow,self).__init__()
+        self.setWindowTitle('登记')
+        self.setFixedSize(300,600)
+        self.setUi()
+
+    def setUi(self):
+
+        self.bnt1 = QPushButton('close')
+        self.bnt1.clicked.connect(self.backClick)
+
+        self.bnt2 = QPushButton('print')
+        self.bnt2.clicked.connect(self.printwindow)
+
+        self.vbox = QVBoxLayout()
+        self.vbox.addWidget(self.bnt1)
+        self.vbox.addWidget(self.bnt2)
+
+        self.setLayout(self.vbox)
+
+
+    def backClick(self):
+        self.close()
+        self.a = listWindow()
+        self.a.show()
+
+    def printwindow(self):
+        self.close()
+        self.b = printWindow()
+        self.b.show()
+
+class printWindow(QWidget):
+    def __init__(self):
+        super(printWindow,self).__init__()
+        self.setWindowTitle('打印')
+        self.setFixedSize(300,600)
+        self.setUi()
+
+    def setUi(self):
+
+        self.bnt1 = QPushButton('close')
+        self.bnt1.clicked.connect(self.backClick)
+
+        self.vbox = QVBoxLayout()
+        self.vbox.addWidget(self.bnt1)
+
+        self.setLayout(self.vbox)
+
+
+    def backClick(self):
+        self.close()
+        self.a = listWindow()
+        self.a.show()
 
 
 if __name__ == '__main__':

@@ -32,7 +32,7 @@ class SignInWidget(QWidget):
         self.label1 = QLineEdit()
         self.label1.setPlaceholderText("请输入用户名")
         self.label1.setClearButtonEnabled(True)
-        self.label1.setFixedWidth(190)
+    #    self.label1.setFixedWidth(190)
         self.label1.setFixedHeight(30)
 
         reg = QRegExp('hs[0-9]{3}')
@@ -44,29 +44,24 @@ class SignInWidget(QWidget):
         self.label2.setPlaceholderText("请输入密码")
         self.label2.setClearButtonEnabled(True)
         self.label2.setEchoMode(QLineEdit.PasswordEchoOnEdit)
-        self.label2.setFixedWidth(190)
         self.label2.setFixedHeight(30)
         self.label2.setFont(QFont())
 
         self.bnt1 = QPushButton("登    录")
-        self.bnt1.setFixedWidth(190)
         self.bnt1.setFixedHeight(30)
         self.bnt1.setStyleSheet('QPushButton{background-color:DodgerBlue;color:white;border:hide;}')
 
-
         self.bnt1.clicked.connect(self.signInCheck)
-    #    self.bnt1.clicked.connect(self.close)
         self.label2.returnPressed.connect(self.signInCheck)
         self.label1.returnPressed.connect(self.signInCheck)
-
-
 
         self.registbox = QGroupBox()
         vbox = QVBoxLayout()
         vbox.addWidget(self.label1)
         vbox.addWidget(self.label2)
         vbox.addWidget(self.bnt1)
-        self.registbox.setStyleSheet('QGroupBox{background-color:#f0f0f0; border:hide}')
+
+        self.registbox.setStyleSheet('QGroupBox{background-color:#f0f0f0; }')
         self.registbox.setLayout(vbox)
 
     def createtitle(self):
@@ -85,7 +80,7 @@ class SignInWidget(QWidget):
         username = self.label1.text()
         password = self.label2.text()
         if (username == '' or password == ''):
-            print(QMessageBox.warning(self,'alert','username or password is empty', QMessageBox.Yes, QMessageBox.Yes))
+            print(QMessageBox.warning(self,'alert','用户名或密码为空', QMessageBox.Yes, QMessageBox.Yes))
             return
 #        db = QSqlDatabase.addDatabase("QSQLITE")
 #        db.setDatabaseName('.basetable.db')
@@ -126,9 +121,9 @@ class listWindow(QWidget):
 
     def setUI(self):
 
-        self.bnt1 = QPushButton('个人信息')
-        self.bnt2 = QPushButton('登记')
-        self.bnt3 = QPushButton('查询')
+        self.bnt1 = QPushButton()
+        self.bnt2 = QPushButton()
+        self.bnt3 = QPushButton()
         self.bnt1.clicked.connect(self.userChange)
         self.bnt2.clicked.connect(self.backClick)
         self.bnt3.clicked.connect(self.queryClick)
@@ -139,12 +134,12 @@ class listWindow(QWidget):
         self.lvl1layout.addWidget(self.bnt2)
         self.lvl1layout.addWidget(self.bnt3)
         self.lvl1layout.addWidget(self.bnt1)
-        self.bnt1.setFixedSize(120,120)
-        self.bnt2.setFixedSize(120,120)
-        self.bnt3.setFixedSize(120,120)
-        self.bnt1.setStyleSheet('QPushButton{background-color:green;color:white;font-size:30px;}')
-        self.bnt2.setStyleSheet('QPushButton{background-color:green;color:white;font-size:30px;}')
-        self.bnt3.setStyleSheet('QPushButton{background-color:green;color:white;font-size:30px;}')
+        self.bnt1.setFixedSize(200,200)
+        self.bnt2.setFixedSize(200,200)
+        self.bnt3.setFixedSize(200,200)
+        self.bnt1.setStyleSheet('QPushButton{background-image:url(img/mobile.png);border:hide;}')
+        self.bnt2.setStyleSheet('QPushButton{background-image:url(img/mdaudio.png);border:hide;}')
+        self.bnt3.setStyleSheet('QPushButton{background-image:url(img/mic.png);border:hide;}')
 
         self.v2box = QWidget()
         self.v2box.setLayout(self.lvl1layout)
@@ -163,6 +158,8 @@ class listWindow(QWidget):
 
     def queryClick(self):
         self.close()
+        self.a = queryWindow()
+        self.a.show()
 
 
 
@@ -185,10 +182,10 @@ class userInfoWindow(QWidget):
                 infolist.append(i[j])
         db.close()
 
-        self.namelabel = QLabel('name')
-        self.passwordlabel1= QLabel('password')
-        self.passwordlabel2= QLabel('password2')
-        self.departmentlabel = QLabel('department')
+        self.namelabel = QLabel('用户名  ')
+        self.passwordlabel1= QLabel('输入密码 ')
+        self.passwordlabel2= QLabel('确认密码 ')
+        self.departmentlabel = QLabel('单位名称 ')
 
         self.name = QLineEdit()
         self.name.setText(infolist[0])
@@ -196,23 +193,25 @@ class userInfoWindow(QWidget):
         self.name.setStyleSheet('QLineEdit{background-color:#f0f0f0}')
 
         self.password= QLineEdit()
-        self.password.setPlaceholderText('input ur password')
+        self.password.setPlaceholderText('请输入密码')
         self.password.setEchoMode(QLineEdit.PasswordEchoOnEdit)
         self.password.setClearButtonEnabled(True)
 
 
         self.password2= QLineEdit()
-        self.password2.setPlaceholderText('input ur password again')
+        self.password2.setPlaceholderText('请再次输入密码')
         self.password2.setEchoMode(QLineEdit.PasswordEchoOnEdit)
         self.password.setClearButtonEnabled(True)
 
         self.department = QLineEdit()
         self.department.setText(infolist[3])
-        self.department.setPlaceholderText('input ur department')
+        self.department.setPlaceholderText('请输入单位名称')
         self.department.setClearButtonEnabled(True)
 
-        self.bnt1 = QPushButton('ok')
+        self.bnt1 = QPushButton('确定')
         self.bnt1.clicked.connect(self.okClick)
+        self.bnt2 = QPushButton('取消')
+        self.bnt2.clicked.connect(self.backClick)
 
         self.message = QLabel()
         self.message.setStyleSheet('QLabel{color:red;font-size:20px;}')
@@ -220,22 +219,30 @@ class userInfoWindow(QWidget):
 
         self.vbox = QVBoxLayout()
         self.fbox = QFormLayout()
+        self.toolbox = QHBoxLayout()
 
         self.fbox.addRow(self.namelabel,self.name)
         self.fbox.addRow(self.passwordlabel1,self.password)
         self.fbox.addRow(self.passwordlabel2, self.password2)
         self.fbox.addRow(self.departmentlabel,self.department)
 
+        self.toolbox.addWidget(self.bnt2)
+        self.toolbox.addWidget(self.bnt1)
+
         self.f2box = QWidget()
-        self.f2box.setLayout(self.fbox)
+        self.tool2box = QWidget()
+
         self.vbox.addWidget(self.f2box)
         self.vbox.addWidget(self.message)
-        self.vbox.addWidget(self.bnt1)
+        self.vbox.addWidget(self.tool2box)
+
+        self.f2box.setLayout(self.fbox)
+        self.tool2box.setLayout(self.toolbox)
         self.setLayout(self.vbox)
 
     def okClick(self):
         if self.password.text() == self.password2.text():
-            a = QMessageBox.information(self,'tishi','是否更改信息？',QMessageBox.Yes,QMessageBox.No)
+            a = QMessageBox.information(self,'提示','是否更改信息？',QMessageBox.Yes,QMessageBox.No)
             #self.message.setText('ok')
             if a == QMessageBox.Yes:
                 h5 = hashlib.md5()
@@ -255,7 +262,7 @@ class userInfoWindow(QWidget):
             else:
                 pass
         else:
-            self.message.setText('password dont match')
+            self.message.setText('两次输入密码不一致')
 
     def info(self):
         db = sqlite3.connect('basetable.db')
@@ -267,6 +274,11 @@ class userInfoWindow(QWidget):
                 infolist.append(i[j])
         db.close()
         return infolist
+
+    def backClick(self):
+        self.close()
+        self.a = listWindow()
+        self.a.show()
 
 class registWindow(QWidget):
     def __init__(self):
@@ -323,10 +335,34 @@ class printWindow(QWidget):
         self.a = listWindow()
         self.a.show()
 
+class queryWindow(QWidget):
+
+    def __init__(self):
+        super(queryWindow,self).__init__()
+        self.setWindowTitle('查询')
+        self.setFixedSize(600,400)
+        self.setUi()
+
+    def setUi(self):
+
+        self.closebnt = QPushButton('close')
+        self.closebnt.clicked.connect(self.backClick)
+
+        self.vbox = QVBoxLayout()
+        self.vbox.addWidget(self.closebnt)
+        self.setLayout(self.vbox)
+
+    def backClick(self):
+        self.close()
+        self.a = listWindow()
+        self.a.show()
+
+
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    app.setWindowIcon(QIcon('./a.png'))
-    mainWindow = SignInWidget()
+    app.setWindowIcon(QIcon('octo.png'))
+#    mainWindow = SignInWidget()
+    mainWindow = listWindow()
     mainWindow.show()
     sys.exit(app.exec_())

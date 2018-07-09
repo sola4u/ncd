@@ -209,9 +209,9 @@ class userInfoWindow(QWidget):
         self.department.setClearButtonEnabled(True)
 
         self.bnt1 = QPushButton('确定')
-        self.bnt1.clicked.connect(self.okClick)
+        self.bnt1.clicked.connect(self.ok_click)
         self.bnt2 = QPushButton('取消')
-        self.bnt2.clicked.connect(self.backClick)
+        self.bnt2.clicked.connect(self.back_click)
 
         self.message = QLabel()
         self.message.setStyleSheet('QLabel{color:red;font-size:20px;}')
@@ -232,15 +232,16 @@ class userInfoWindow(QWidget):
         self.f2box = QWidget()
         self.tool2box = QWidget()
 
+        self.f2box.setLayout(self.fbox)
+        self.tool2box.setLayout(self.toolbox)
+
         self.vbox.addWidget(self.f2box)
         self.vbox.addWidget(self.message)
         self.vbox.addWidget(self.tool2box)
 
-        self.f2box.setLayout(self.fbox)
-        self.tool2box.setLayout(self.toolbox)
         self.setLayout(self.vbox)
 
-    def okClick(self):
+    def ok_click(self):
         if self.password.text() == self.password2.text():
             a = QMessageBox.information(self,'提示','是否更改信息？',QMessageBox.Yes,QMessageBox.No)
             #self.message.setText('ok')
@@ -264,18 +265,8 @@ class userInfoWindow(QWidget):
         else:
             self.message.setText('两次输入密码不一致')
 
-    def info(self):
-        db = sqlite3.connect('basetable.db')
-        query = db.cursor()
-        info = query.execute('select * from user')
-        infolist = []
-        for i in info:
-            for j in range(4):
-                infolist.append(i[j])
-        db.close()
-        return infolist
 
-    def backClick(self):
+    def back_click(self):
         self.close()
         self.a = listWindow()
         self.a.show()
@@ -284,45 +275,66 @@ class registWindow(QWidget):
     def __init__(self):
         super(registWindow,self).__init__()
         self.setWindowTitle('登记')
-        self.setFixedSize(300,600)
+        self.setFixedSize(400, 600)
         self.setUi()
 
     def setUi(self):
 
         self.bnt1 = QPushButton('close')
-        self.bnt1.clicked.connect(self.backClick)
+        self.bnt1.clicked.connect(self.back_click)
 
         self.bnt2 = QPushButton('print')
-        self.bnt2.clicked.connect(self.printwindow)
+        self.bnt2.clicked.connect(self.print_record)
 
-        self.vbox = QVBoxLayout()
-        self.vbox.addWidget(self.bnt1)
-        self.vbox.addWidget(self.bnt2)
+        self.bnt3 = QPushButton('save')
+        self.bnt2.clicked.connect(self.save_record)
 
-        self.setLayout(self.vbox)
+        self.mainbox = QVBoxLayout()
+        self.formbox = QFormLayout()
+        self.hbox = QHBoxLayout()
+
+        self.namelabel = QLabel('姓名')
+        self.name = QLineEdit()
+        self.formbox.addRow(self.namelabel, self.name)
+
+        self.hbox.addWidget(self.bnt1)
+        self.hbox.addWidget(self.bnt3)
+        self.hbox.addWidget(self.bnt2)
+
+        self.form2box = QWidget()
+        self.h2box = QWidget()
+        self.form2box.setLayout(self.formbox)
+        self.h2box.setLayout(self.hbox)
+
+        self.mainbox.addWidget(self.form2box)
+        self.mainbox.addWidget(self.h2box)
+        self.setLayout(self.mainbox)
 
 
-    def backClick(self):
+    def back_click(self):
         self.close()
         self.a = listWindow()
         self.a.show()
 
-    def printwindow(self):
+    def print_record(self):
         self.close()
         self.b = printWindow()
         self.b.show()
+
+    def save_record(self):
+        pass
 
 class printWindow(QWidget):
     def __init__(self):
         super(printWindow,self).__init__()
         self.setWindowTitle('打印')
-        self.setFixedSize(300,600)
+        self.setFixedSize(400,600)
         self.setUi()
 
     def setUi(self):
 
         self.bnt1 = QPushButton('close')
-        self.bnt1.clicked.connect(self.backClick)
+        self.bnt1.clicked.connect(self.back_click)
 
         self.vbox = QVBoxLayout()
         self.vbox.addWidget(self.bnt1)
@@ -330,7 +342,7 @@ class printWindow(QWidget):
         self.setLayout(self.vbox)
 
 
-    def backClick(self):
+    def back_click(self):
         self.close()
         self.a = listWindow()
         self.a.show()
@@ -346,13 +358,13 @@ class queryWindow(QWidget):
     def setUi(self):
 
         self.closebnt = QPushButton('close')
-        self.closebnt.clicked.connect(self.backClick)
+        self.closebnt.clicked.connect(self.back_click)
 
         self.vbox = QVBoxLayout()
         self.vbox.addWidget(self.closebnt)
         self.setLayout(self.vbox)
 
-    def backClick(self):
+    def back_click(self):
         self.close()
         self.a = listWindow()
         self.a.show()
@@ -362,7 +374,7 @@ class queryWindow(QWidget):
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     app.setWindowIcon(QIcon('octo.png'))
-#    mainWindow = SignInWidget()
-    mainWindow = listWindow()
+    mainWindow = SignInWidget()
+#    mainWindow = listWindow()
     mainWindow.show()
     sys.exit(app.exec_())

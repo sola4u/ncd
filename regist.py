@@ -16,18 +16,18 @@ class SignInWidget(QWidget):
         super(SignInWidget, self).__init__()
         self.setFixedSize(250, 300)
         self.setWindowTitle("NCD")
-        self.setUpUI()
+        self.set_up_ui()
 #        self.setWindowFlags(Qt.FramelessWindowHint)  #设置标题栏透明
 
-    def setUpUI(self):
-        self.createRegist()
-        self.createtitle()
+    def set_up_ui(self):
+        self.create_regist()
+        self.create_title()
         mainlayout = QVBoxLayout()
         mainlayout.addWidget(self.blankbox)
         mainlayout.addWidget(self.registbox)
         self.setLayout(mainlayout)
 
-    def createRegist(self):
+    def create_regist(self):
 
         self.label1 = QLineEdit()
         self.label1.setPlaceholderText("请输入用户名")
@@ -51,9 +51,9 @@ class SignInWidget(QWidget):
         self.bnt1.setFixedHeight(30)
         self.bnt1.setStyleSheet('QPushButton{background-color:DodgerBlue;color:white;border:hide;}')
 
-        self.bnt1.clicked.connect(self.signInCheck)
-        self.label2.returnPressed.connect(self.signInCheck)
-        self.label1.returnPressed.connect(self.signInCheck)
+        self.bnt1.clicked.connect(self.sign_in_check)
+        self.label2.returnPressed.connect(self.sign_in_check)
+        self.label1.returnPressed.connect(self.sign_in_check)
 
         self.registbox = QGroupBox()
         vbox = QVBoxLayout()
@@ -64,7 +64,7 @@ class SignInWidget(QWidget):
         self.registbox.setStyleSheet('QGroupBox{background-color:#f0f0f0; }')
         self.registbox.setLayout(vbox)
 
-    def createtitle(self):
+    def create_title(self):
         self.blankbox = QGroupBox()
         vbox = QVBoxLayout()
         self.title = QLabel('死亡证明登记系统')
@@ -76,7 +76,7 @@ class SignInWidget(QWidget):
 
         self.blankbox.setLayout(vbox)
 
-    def signInCheck(self):
+    def sign_in_check(self):
         username = self.label1.text()
         password = self.label2.text()
         if (username == '' or password == ''):
@@ -103,7 +103,7 @@ class SignInWidget(QWidget):
             if h1.hexdigest() == b :
                 #print(QMessageBox.information(self,'提示','帐号存在',QMessageBox.Yes,QMessageBox.Yes))
                 mainWindow.close()
-                self.a = listWindow()
+                self.a = ListWindow()
                 self.a.show()
 
             else:
@@ -111,22 +111,22 @@ class SignInWidget(QWidget):
         db.close()
         return
 
-class listWindow(QWidget):
+class ListWindow(QWidget):
 
     def __init__(self):
-        super(listWindow,self).__init__()
+        super(ListWindow,self).__init__()
         self.setWindowTitle('main')
         self.setFixedSize(600, 400)
-        self.setUI()
+        self.set_ui()
 
-    def setUI(self):
+    def set_ui(self):
 
         self.bnt1 = QPushButton()
         self.bnt2 = QPushButton()
         self.bnt3 = QPushButton()
-        self.bnt1.clicked.connect(self.userChange)
-        self.bnt2.clicked.connect(self.backClick)
-        self.bnt3.clicked.connect(self.queryClick)
+        self.bnt1.clicked.connect(self.user_change)
+        self.bnt2.clicked.connect(self.back_click)
+        self.bnt3.clicked.connect(self.query_click)
 
         self.mainlayout = QVBoxLayout()
         self.lvl1layout = QHBoxLayout()
@@ -146,32 +146,32 @@ class listWindow(QWidget):
         self.mainlayout.addWidget(self.v2box)
         self.setLayout(self.mainlayout)
 
-    def backClick(self):
+    def back_click(self):
         self.close()
-        self.a = registWindow()
+        self.a = RegistWindow()
         self.a.show()
 
-    def userChange(self):
+    def user_change(self):
         self.close()
-        self.a = userInfoWindow()
+        self.a = UserInfoWindow()
         self.a.show()
 
-    def queryClick(self):
+    def query_click(self):
         self.close()
-        self.a = queryWindow()
+        self.a = QueryWindow()
         self.a.show()
 
 
 
-class userInfoWindow(QWidget):
+class UserInfoWindow(QWidget):
 
     def __init__(self):
-        super(userInfoWindow,self).__init__()
+        super(UserInfoWindow,self).__init__()
         self.setWindowTitle('user infomation')
         self.setFixedSize(300,400)
-        self.setUi()
+        self.set_ui()
 
-    def setUi(self):
+    def set_ui(self):
 
         db = sqlite3.connect('basetable.db')
         query = db.cursor()
@@ -258,7 +258,7 @@ class userInfoWindow(QWidget):
                 db.close()
                 self.message.setText(self.password.text())
                 self.close()
-                self.a = listWindow()
+                self.a = ListWindow()
                 self.a.show()
             else:
                 pass
@@ -268,17 +268,17 @@ class userInfoWindow(QWidget):
 
     def back_click(self):
         self.close()
-        self.a = listWindow()
+        self.a = ListWindow()
         self.a.show()
 
-class registWindow(QWidget):
+class RegistWindow(QWidget):
     def __init__(self):
-        super(registWindow,self).__init__()
+        super(RegistWindow,self).__init__()
         self.setWindowTitle('登记')
         self.setFixedSize(400, 600)
-        self.setUi()
+        self.set_ui()
 
-    def setUi(self):
+    def set_ui(self):
 
         self.bnt1 = QPushButton('close')
         self.bnt1.clicked.connect(self.back_click)
@@ -297,12 +297,53 @@ class registWindow(QWidget):
         self.name = QLineEdit()
         self.formbox.addRow(self.namelabel, self.name)
 
+        self.genderlabel = QLabel('gender')
+        self.gender = QLineEdit()
+        self.formbox.addRow(self.genderlabel, self.gender)
+
+        self.cal = QCalendarWidget(self)
+        self.cal.setGridVisible(True)
+        self.cal.move(30, 30)
+        self.cal.clicked[QDate].connect(self.show_date)
+
+        self.birthlable = QLabel('birth')
+        self.birthday = self.cal.selectedDate()
+    #    self.formbox.addRow(self.birthlable, self.birthday)
+
+        self.idlabel = QLabel('idnumber')
+        self.id = QLineEdit()
+        self.formbox.addRow(self.idlabel, self.id)
+
+        self.addresslabel = QLabel('address')
+        self.address = QLineEdit()
+        self.formbox.addRow(self.addresslabel, self.address)
+
+        self.deathlabel = QLabel('deathdate')
+        self.deathdate = QDateEdit()
+        self.formbox.addRow(self.deathlabel, self.deathdate)
+
+        self.diseaselabel = QLabel('disease')
+        self.disease = QLineEdit()
+        self.formbox.addRow(self.diseaselabel, self.disease)
+
+        self.regist_date_lable = QLabel('regist_date')
+        self.regist_date = QDateEdit()
+        self.formbox.addRow(self.regist_date_lable, self.regist_date)
+
+        self.familylabel = QLabel('family')
+        self.family = QLineEdit()
+        self.formbox.addRow(self.familylabel, self.family)
+
+        self.tellabel= QLabel('tel')
+        self.tel = QLineEdit()
+        self.formbox.addRow(self.tellabel, self.tel)
+
         self.hbox.addWidget(self.bnt1)
         self.hbox.addWidget(self.bnt3)
         self.hbox.addWidget(self.bnt2)
 
         self.form2box = QWidget()
-        self.h2box = QWidget()
+        s   elf.h2box = QWidget()
         self.form2box.setLayout(self.formbox)
         self.h2box.setLayout(self.hbox)
 
@@ -313,25 +354,33 @@ class registWindow(QWidget):
 
     def back_click(self):
         self.close()
-        self.a = listWindow()
+        self.a = ListWindow()
         self.a.show()
 
     def print_record(self):
         self.close()
-        self.b = printWindow()
+        self.b = PrintWindow()
         self.b.show()
 
     def save_record(self):
-        pass
 
-class printWindow(QWidget):
+        db = sqlite3.connect('basetable.db')
+        cur = db.cursor()
+
+        cur.execute('insert into base valuse (%s,%s,%s,%s,%s)'%(self.name,self.gender,self.id))
+        cur.commit()
+
+    def show_date(self):
+        self.birthday.setText(date.toString())
+
+class PrintWindow(QWidget):
     def __init__(self):
-        super(printWindow,self).__init__()
+        super(PrintWindow,self).__init__()
         self.setWindowTitle('打印')
         self.setFixedSize(400,600)
-        self.setUi()
+        self.set_ui()
 
-    def setUi(self):
+    def set_ui(self):
 
         self.bnt1 = QPushButton('close')
         self.bnt1.clicked.connect(self.back_click)
@@ -344,18 +393,18 @@ class printWindow(QWidget):
 
     def back_click(self):
         self.close()
-        self.a = listWindow()
+        self.a = ListWindow()
         self.a.show()
 
-class queryWindow(QWidget):
+class QueryWindow(QWidget):
 
     def __init__(self):
-        super(queryWindow,self).__init__()
+        super(QueryWindow,self).__init__()
         self.setWindowTitle('查询')
         self.setFixedSize(600,400)
-        self.setUi()
+        self.set_ui()
 
-    def setUi(self):
+    def set_ui(self):
 
         self.closebnt = QPushButton('close')
         self.closebnt.clicked.connect(self.back_click)
@@ -366,15 +415,13 @@ class queryWindow(QWidget):
 
     def back_click(self):
         self.close()
-        self.a = listWindow()
+        self.a = ListWindow()
         self.a.show()
-
-
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     app.setWindowIcon(QIcon('octo.png'))
-    mainWindow = SignInWidget()
-#    mainWindow = listWindow()
+#    mainWindow = SignInWidget()
+    mainWindow = ListWindow()
     mainWindow.show()
     sys.exit(app.exec_())

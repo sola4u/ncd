@@ -210,7 +210,7 @@ class UserInfoWindow(QWidget):
 
         self.bnt1 = QPushButton('确定')
         self.bnt1.clicked.connect(self.ok_click)
-        self.bnt2 = QPushButton('取消')
+        self.bnt2 = QPushButton('取消(ESC)')
         self.bnt2.clicked.connect(self.back_click)
 
         self.message = QLabel()
@@ -271,7 +271,13 @@ class UserInfoWindow(QWidget):
         self.a = ListWindow()
         self.a.show()
 
+    def keyPressEvent(self, e):
+        if e.key() == Qt.Key_Escape:
+            self.back_click()
+
 class RegistWindow(QWidget):
+
+
     def __init__(self):
         super(RegistWindow,self).__init__()
         self.setWindowTitle('登记')
@@ -290,60 +296,69 @@ class RegistWindow(QWidget):
         self.bnt2.clicked.connect(self.save_record)
 
         self.mainbox = QVBoxLayout()
-        self.formbox = QFormLayout()
+        self.formbox = QVBoxLayout()
         self.hbox = QHBoxLayout()
 
-        self.namelabel = QLabel('姓名')
-        self.name = QLineEdit()
-        self.formbox.addRow(self.namelabel, self.name)
+        # self.namelabel = QLabel('姓名')
+        # self.name = QLineEdit()
+        # self.formbox.addRow(self.namelabel, self.name)
+        #
+        # self.genderlabel = QLabel('gender')
+        # self.gender = QLineEdit()
+        # self.formbox.addRow(self.genderlabel, self.gender)
 
-        self.genderlabel = QLabel('gender')
-        self.gender = QLineEdit()
-        self.formbox.addRow(self.genderlabel, self.gender)
-
-        self.cal = QCalendarWidget(self)
-        self.cal.setGridVisible(True)
-        self.cal.move(30, 30)
-        self.cal.clicked[QDate].connect(self.show_date)
+        # self.cal = QCalendarWidget(self)
+        # self.cal.setGridVisible(True)
+        # self.cal.move(30, 30)
+        # self.cal.clicked[QDate].connect(self.show_date)
 
         self.birthlable = QLabel('birth')
-        self.birthday = self.cal.selectedDate()
-    #    self.formbox.addRow(self.birthlable, self.birthday)
+        self.birthday = QLineEdit()
+        self.birthchoice = QPushButton('>')
 
-        self.idlabel = QLabel('idnumber')
-        self.id = QLineEdit()
-        self.formbox.addRow(self.idlabel, self.id)
+        self.birthchoice.clicked.connect(self.show_cal)
 
-        self.addresslabel = QLabel('address')
-        self.address = QLineEdit()
-        self.formbox.addRow(self.addresslabel, self.address)
+        self.formbox.addWidget(self.birthlable)
+        self.formbox.addWidget(self.birthday)
+        self.formbox.addWidget(self.birthchoice)
+        # self.idlabel = QLabel('idnumber')
+        # self.id = QLineEdit()
 
+
+        # self.addresslabel = QLabel('address')
+        # self.address = QLineEdit()
+        # self.formbox.addRow(self.addresslabel, self.address)
+        #
         self.deathlabel = QLabel('deathdate')
-        self.deathdate = QDateEdit()
-        self.formbox.addRow(self.deathlabel, self.deathdate)
+        self.deathdate = QLineEdit()
+        self.deathchoice = QPushButton('>')
+        self.deathchoice.clicked.connect(self.show_death_cal)
+        self.formbox.addWidget(self.deathlabel)
+        self.formbox.addWidget(self.deathdate)
+        self.formbox.addWidget(self.deathchoice)
 
-        self.diseaselabel = QLabel('disease')
-        self.disease = QLineEdit()
-        self.formbox.addRow(self.diseaselabel, self.disease)
-
-        self.regist_date_lable = QLabel('regist_date')
-        self.regist_date = QDateEdit()
-        self.formbox.addRow(self.regist_date_lable, self.regist_date)
-
-        self.familylabel = QLabel('family')
-        self.family = QLineEdit()
-        self.formbox.addRow(self.familylabel, self.family)
-
-        self.tellabel= QLabel('tel')
-        self.tel = QLineEdit()
-        self.formbox.addRow(self.tellabel, self.tel)
+        # self.diseaselabel = QLabel('disease')
+        # self.disease = QLineEdit()
+        # self.formbox.addRow(self.diseaselabel, self.disease)
+        #
+        # self.regist_date_lable = QLabel('regist_date')
+        # self.regist_date = QDateEdit()
+        # self.formbox.addRow(self.regist_date_lable, self.regist_date)
+        #
+        # self.familylabel = QLabel('family')
+        # self.family = QLineEdit()
+        # self.formbox.addRow(self.familylabel, self.family)
+        #
+        # self.tellabel= QLabel('tel')
+        # self.tel = QLineEdit()
+        # self.formbox.addRow(self.tellabel, self.tel)
 
         self.hbox.addWidget(self.bnt1)
         self.hbox.addWidget(self.bnt3)
         self.hbox.addWidget(self.bnt2)
 
         self.form2box = QWidget()
-        s   elf.h2box = QWidget()
+        self.h2box = QWidget()
         self.form2box.setLayout(self.formbox)
         self.h2box.setLayout(self.hbox)
 
@@ -370,8 +385,57 @@ class RegistWindow(QWidget):
         cur.execute('insert into base valuse (%s,%s,%s,%s,%s)'%(self.name,self.gender,self.id))
         cur.commit()
 
+    def show_cal(self):
+        self.d = Calendar()
+        self.d.show()
+        self.d.date_signal.connect(self.change_date)
+
+
+    def change_date(self, data):
+        self.birthday.setText(data)
+
+    def show_death_cal(self):
+        self.d = Calendar()
+        self.d.show()
+        self.d.date_signal.connect(self.change_death_date)
+
+
+    def change_death_date(self, data):
+        self.deathdate.setText(data)
+
+class Calendar(QWidget):
+
+    date_signal = pyqtSignal(str)
+    def __init__(self):
+        super(Calendar,self).__init__()
+
+
+#        self.setGeometry(300, 300, 350, 300)
+        self.setWindowTitle('日历')
+        self.cal = QCalendarWidget(self)
+        self.cal.setGridVisible(True)
+        self.cal.clicked.connect(self.show_date)
+        self.value = QLineEdit()
+        self.bnt = QPushButton('y')
+        self.bnt.clicked.connect(self.use_date)
+        vbox = QVBoxLayout()
+        vbox.addWidget(self.cal)
+        vbox.addWidget(self.value)
+        vbox.addWidget(self.bnt)
+        self.setLayout(vbox)
+
+
     def show_date(self):
-        self.birthday.setText(date.toString())
+        date = self.cal.selectedDate()
+        self.value.setText(str(date.toPyDate()))
+
+    def use_date(self):
+        date = self.cal.selectedDate()
+        data = str(date.toPyDate())
+        self.date_signal.emit(data)
+        self.close()
+
+
 
 class PrintWindow(QWidget):
     def __init__(self):
@@ -398,6 +462,7 @@ class PrintWindow(QWidget):
 
 class QueryWindow(QWidget):
 
+
     def __init__(self):
         super(QueryWindow,self).__init__()
         self.setWindowTitle('查询')
@@ -417,6 +482,10 @@ class QueryWindow(QWidget):
         self.close()
         self.a = ListWindow()
         self.a.show()
+
+
+
+
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)

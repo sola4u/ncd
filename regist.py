@@ -305,57 +305,82 @@ class RegistWindow(QWidget):
         self.genderlabel = QLabel('性别')
         self.gender = QLineEdit()
         self.male = QCheckBox('男')
+        self.male.stateChanged.connect(self.tomale)
         self.female = QCheckBox('女')
+        self.female.stateChanged.connect(self.tofemale)
 
-        self.birthlable = QLabel('birth')
-        self.birthday = QLineEdit()
+        self.racelabel = QLabel('民族')
+        self.race = QComboBox()
+        self.race.setEditable(True)
+        self.race.addItem('汉族')
+        self.race.addItem('回族')
+        self.race.addItem('壮族')
+        self.race.addItem('藏族')
+        self.race.addItem('维吾尔族')
+
+        self.idlabel = QLabel('证件号码')
+        self.id = QLineEdit()
+        self.id.returnPressed.connect(self.id_to_date)
+
+        self.birthlable = QLabel('出生日期')
+        self.birthday = QDateEdit()
         self.birthchoice = QPushButton('>')
         self.birthchoice.clicked.connect(self.show_cal)
 
-        self.idlabel = QLabel('idnumber')
-        self.id = QLineEdit()
-
-        self.addresslabel = QLabel('address')
+        self.addresslabel = QLabel('住址')
         self.address = QLineEdit()
 
-        self.deathlabel = QLabel('deathdate')
-        self.deathdate = QLineEdit()
+        self.deathlabel = QLabel('死亡日期')
+        self.deathdate = QDateEdit()
         self.deathchoice = QPushButton('>')
         self.deathchoice.clicked.connect(self.show_death_cal)
 
-        self.diseaselabel = QLabel('disease')
+        self.diseaselabel = QLabel('死因')
         self.disease = QLineEdit()
 
-        self.regist_date_lable = QLabel('regist_date')
+        self.regist_date_lable = QLabel('登记日期')
         self.regist_date = QLineEdit()
         self.regist_date_choice = QPushButton('>')
         self.regist_date_choice.clicked.connect(self.regist_date_cal)
 
-        self.familylabel = QLabel('family')
+        self.familylabel = QLabel('家属姓名')
         self.family = QLineEdit()
 
-        self.tellabel= QLabel('tel')
+        self.tellabel= QLabel('联系方式')
         self.tel = QLineEdit()
+
+        self.genderbox = QHBoxLayout()
+        self.genderbox.addWidget(self.male)
+        self.genderbox.addWidget(self.female)
+        self.gender2box = QWidget()
+        self.gender2box.setLayout(self.genderbox)
 
         self.gridbox.addWidget(self.namelabel,1,0)
         self.gridbox.addWidget(self.name,1,1)
         self.gridbox.addWidget(self.genderlabel,2,0)
-        self.gridbox.addWidget(self.male,2,1)
-        self.gridbox.addWidget(self.female,2,2)
-        self.gridbox.addWidget(self.birthlable,3,0)
-        self.gridbox.addWidget(self.birthday,3,1)
-        self.gridbox.addWidget(self.birthchoice,3,2)
+        self.gridbox.addWidget(self.gender2box,2,1)
+        self.gridbox.addWidget(self.racelabel,2,2)
+        self.gridbox.addWidget(self.race,2,3)
+        self.gridbox.addWidget(self.idlabel,3,0)
+        self.gridbox.addWidget(self.id,3,1)
+        self.gridbox.addWidget(self.birthlable,4,0)
+        self.gridbox.addWidget(self.birthday,4,1)
+        self.gridbox.addWidget(self.birthchoice,4,2)
+        self.gridbox.addWidget(self.deathlabel,5,0)
+        self.gridbox.addWidget(self.deathdate,5,1)
+        self.gridbox.addWidget(self.deathchoice,5,2)
+        self.gridbox.addWidget(self.gender,6,1)
 
         self.hbox.addWidget(self.bnt1)
         self.hbox.addWidget(self.bnt3)
         self.hbox.addWidget(self.bnt2)
 
-        self.form2box = QWidget()
+        self.formbox = QWidget()
         self.h2box = QWidget()
-        self.form2box.setLayout(self.gridbox)
+        self.formbox.setLayout(self.gridbox)
         self.h2box.setLayout(self.hbox)
 
-        self.mainbox.addWidget(self.form2box)
+        self.mainbox.addWidget(self.formbox)
         self.mainbox.addWidget(self.h2box)
         self.setLayout(self.mainbox)
 
@@ -383,23 +408,46 @@ class RegistWindow(QWidget):
         self.d.show()
         self.d.date_signal.connect(self.change_date)
 
-    def change_date(self, data):
-        self.birthday.setText(data)
+    def change_date(self, date):
+        self.birthday.setDate(date)
 
     def show_death_cal(self):
         self.d = Calendar()
         self.d.show()
         self.d.date_signal.connect(self.change_death_date)
 
-    def change_death_date(self, data):
-        self.deathdate.setText(data)
+    def change_death_date(self, date):
+        self.deathdate.setDate(date)
 
     def regist_date_cal(self):
         pass
 
+    def id_to_date(self):
+        year = int(self.id.text()[6:10])
+        month =int(self.id.text()[10:12])
+        day = int(self.id.text()[12:14])
+        self.birthday.setDate(QDate(year,month,day))
+        gender = int(self.id.text()[-2])
+        if gender%2==0:
+            self.female.setChecked(True)
+            self.male.setChecked(False)
+        else:
+            self.female.setChecked(False)
+            self.male.setChecked(True)
+
+    def tomale(self,state):
+        if state == Qt.Checked:
+            self.gender.setText('男')
+            self.female.setChecked(False)
+
+    def tofemale(self,state):
+        if state == Qt.Checked:
+            self.gender.setText('女')
+            self.male.setChecked(False)
+
 class Calendar(QWidget):
 
-    date_signal = pyqtSignal(str)
+    date_signal = pyqtSignal(QDate)
     def __init__(self):
         super(Calendar,self).__init__()
 
@@ -416,8 +464,7 @@ class Calendar(QWidget):
 
     def show_date(self):
         date = self.cal.selectedDate()
-        data = str(date.toPyDate())
-        self.date_signal.emit(data)
+        self.date_signal.emit(date)
         self.close()
 
 

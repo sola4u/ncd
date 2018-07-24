@@ -7,6 +7,8 @@ from PyQt5.QtCore import *
 from PyQt5.QtSql import *
 import hashlib
 import sqlite3
+import area
+import time
 #import qdarkstyle
 
 class SignInWidget(QWidget):
@@ -295,9 +297,6 @@ class RegistWindow(QWidget):
         self.bnt3 = QPushButton('save')
         self.bnt2.clicked.connect(self.save_record)
 
-        self.mainbox = QVBoxLayout()
-        self.gridbox = QGridLayout()
-        self.hbox = QHBoxLayout()
 
         self.namelabel = QLabel('姓名')
         self.name = QLineEdit()
@@ -320,6 +319,7 @@ class RegistWindow(QWidget):
 
         self.idlabel = QLabel('证件号码')
         self.id = QLineEdit()
+        self.idmsg = QLabel('请按回车ENTER')
         self.id.returnPressed.connect(self.id_to_date)
 
         self.birthlable = QLabel('出生日期')
@@ -329,6 +329,22 @@ class RegistWindow(QWidget):
 
         self.addresslabel = QLabel('住址')
         self.address = QLineEdit()
+        self.provincelabel = QLabel('省份')
+        self.province = QComboBox()
+        self.citylable = QLabel('市')
+        self.city = QComboBox()
+        self.countrylabel = QLabel('区/县')
+        self.country = QComboBox()
+        self.townlabel = QLabel('乡镇')
+        self.town = QComboBox()
+        self.town.setEditable(True)
+
+        self.dictProvince = area.dictProvince
+        self.dictCity = area.dictCity
+        self.dictTown = area.dictTown
+        for (keys, val) in self.dictProvince.items():
+            self.province.addItem(val, QVariant(keys))
+
 
         self.deathlabel = QLabel('死亡日期')
         self.deathdate = QDateEdit()
@@ -339,7 +355,7 @@ class RegistWindow(QWidget):
         self.disease = QLineEdit()
 
         self.regist_date_lable = QLabel('登记日期')
-        self.regist_date = QLineEdit()
+        self.regist_date = QDateEdit(QDate.currentDate())
         self.regist_date_choice = QPushButton('>')
         self.regist_date_choice.clicked.connect(self.regist_date_cal)
 
@@ -355,21 +371,43 @@ class RegistWindow(QWidget):
         self.gender2box = QWidget()
         self.gender2box.setLayout(self.genderbox)
 
+        self.mainbox = QVBoxLayout()
+        self.gridbox = QGridLayout()
+        self.hbox = QHBoxLayout()
+
         self.gridbox.addWidget(self.namelabel,1,0)
-        self.gridbox.addWidget(self.name,1,1)
-        self.gridbox.addWidget(self.genderlabel,2,0)
-        self.gridbox.addWidget(self.gender2box,2,1)
-        self.gridbox.addWidget(self.racelabel,2,2)
-        self.gridbox.addWidget(self.race,2,3)
-        self.gridbox.addWidget(self.idlabel,3,0)
-        self.gridbox.addWidget(self.id,3,1)
-        self.gridbox.addWidget(self.birthlable,4,0)
-        self.gridbox.addWidget(self.birthday,4,1)
-        self.gridbox.addWidget(self.birthchoice,4,2)
-        self.gridbox.addWidget(self.deathlabel,5,0)
-        self.gridbox.addWidget(self.deathdate,5,1)
-        self.gridbox.addWidget(self.deathchoice,5,2)
-        self.gridbox.addWidget(self.gender,6,1)
+        self.gridbox.addWidget(self.name,1,1,1,2)
+        self.gridbox.addWidget(self.idlabel,2,0)
+        self.gridbox.addWidget(self.id,2,1,1,2)
+        self.gridbox.addWidget(self.idmsg,2,3)
+        self.gridbox.addWidget(self.genderlabel,3,0)
+        self.gridbox.addWidget(self.gender2box,3,1)
+        self.gridbox.addWidget(self.racelabel,4,0)
+        self.gridbox.addWidget(self.race,4,1,1,2)
+        self.gridbox.addWidget(self.birthlable,5,0)
+        self.gridbox.addWidget(self.birthday,5,1,1,2)
+        self.gridbox.addWidget(self.birthchoice,5,3)
+        self.gridbox.addWidget(self.provincelabel,6,0)
+        self.gridbox.addWidget(self.province,6,1)
+        self.gridbox.addWidget(self.citylable,6,2)
+        self.gridbox.addWidget(self.city,6,3)
+        self.gridbox.addWidget(self.countrylabel,7,0)
+        self.gridbox.addWidget(self.country,7,1)
+        self.gridbox.addWidget(self.townlabel,7,2)
+        self.gridbox.addWidget(self.town,7,3)
+        self.gridbox.addWidget(self.addresslabel,8,0)
+        self.gridbox.addWidget(self.address,8,1,1,2)
+        self.gridbox.addWidget(self.deathlabel,9,0)
+        self.gridbox.addWidget(self.deathdate,9,1,1,2)
+        self.gridbox.addWidget(self.deathchoice,9,3)
+        self.gridbox.addWidget(self.diseaselabel,10,0)
+        self.gridbox.addWidget(self.disease,10,1,1,2)
+        self.gridbox.addWidget(self.familylabel,11,0)
+        self.gridbox.addWidget(self.family,11,1,1,2)
+        self.gridbox.addWidget(self.tellabel,12,0)
+        self.gridbox.addWidget(self.tel,12,1,1,2)
+        self.gridbox.addWidget(self.regist_date_lable,13,0)
+        self.gridbox.addWidget(self.regist_date,13,1,1,2)
 
         self.hbox.addWidget(self.bnt1)
         self.hbox.addWidget(self.bnt3)
@@ -380,7 +418,10 @@ class RegistWindow(QWidget):
         self.formbox.setLayout(self.gridbox)
         self.h2box.setLayout(self.hbox)
 
+        self.blank = QLabel('      ====================登  记======================')
+        self.mainbox.addWidget(self.blank)
         self.mainbox.addWidget(self.formbox)
+        self.mainbox.addWidget(self.blank)
         self.mainbox.addWidget(self.h2box)
         self.setLayout(self.mainbox)
 
@@ -399,9 +440,26 @@ class RegistWindow(QWidget):
 
         db = sqlite3.connect('basetable.db')
         cur = db.cursor()
+        data = {'std_name':self.name.text(),
+                'std_id':self.id.text(),
+                'std_gender':self.gender.text(),
+                'std_race':self.race.currentText(),
+                'std_birthday':self.change_date(self.birthday),
+                'std_address':self.address.text(),
+                'std_deathdate':self.change_date(self.deathdate),
+                'std_disease':self.disease.text(),
+                'std_family':self.family.text(),
+                'std_tel':self.tel.text(),
+                'std_regist_date':self.change_date(self.regist_date)
+        }
+        sql = '''insert into base (name,id,gender,race,birthday,address,deathdate,disease,
+                    family,tel,regist_date) values (:std_name,:std_id,:std_gender,:std_race,
+                    :std_birthday,:std_address,:std_deathdate,:std_disease,:std_family,
+                    :std_tel,:std_regist_date)'''
 
-        cur.execute('insert into base valuse (%s,%s,%s,%s,%s)'%(self.name,self.gender,self.id))
-        cur.commit()
+        cur.execute(sql,data)
+        db.commit()
+        db.close()
 
     def show_cal(self):
         self.d = Calendar()
@@ -423,17 +481,34 @@ class RegistWindow(QWidget):
         pass
 
     def id_to_date(self):
-        year = int(self.id.text()[6:10])
-        month =int(self.id.text()[10:12])
-        day = int(self.id.text()[12:14])
-        self.birthday.setDate(QDate(year,month,day))
-        gender = int(self.id.text()[-2])
-        if gender%2==0:
-            self.female.setChecked(True)
-            self.male.setChecked(False)
+        id_upper = self.id.text().upper()
+        if len(id_upper) == 18:
+            self.id.setText(id_upper)
+            year = int(id_upper[6:10])
+            month =int(id_upper[10:12])
+            day = int(id_upper[12:14])
+            self.birthday.setDate(QDate(year,month,day))
+            gender = int(id_upper[-2])
+            if gender%2==0:
+                self.female.setChecked(True)
+                self.male.setChecked(False)
+            else:
+                self.female.setChecked(False)
+                self.male.setChecked(True)
+
+            certify_number = ['1','0','X','9','8','7','6','5','4','3','2','1']
+            std_number = [7,9,10,5,8,4,2,1,6,3,7,9,10,5,8,4,2]
+            sum = 0
+            for i in range(17):
+                sum += int(id_upper[i])*std_number[i]
+            certify_rslt = certify_number[sum%11]
+            if certify_rslt != id_upper[-1]:
+                self.idmsg.setText('身份证号码不正确')
+                self.idmsg.setStyleSheet('QLabel{color:red}')
+            else:
+                self.idmsg.setText('请按回车ENTER')
         else:
-            self.female.setChecked(False)
-            self.male.setChecked(True)
+            self.idmsg.setText('请按回车ENTER')
 
     def tomale(self,state):
         if state == Qt.Checked:
@@ -444,6 +519,13 @@ class RegistWindow(QWidget):
         if state == Qt.Checked:
             self.gender.setText('女')
             self.male.setChecked(False)
+
+    def change_date(self,a):
+        pydate = str(a.date().toPyDate())
+        date2 = time.mktime(time.strptime(pydate,'%Y-%m-%d'))
+        return date2
+
+
 
 class Calendar(QWidget):
 

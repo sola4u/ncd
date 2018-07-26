@@ -9,6 +9,7 @@ import hashlib
 import sqlite3
 import area
 import time
+import datetime
 #import qdarkstyle
 
 class SignInWidget(QWidget):
@@ -279,7 +280,6 @@ class UserInfoWindow(QWidget):
 
 class RegistWindow(QWidget):
 
-
     def __init__(self):
         super(RegistWindow,self).__init__()
         self.setWindowTitle('登记')
@@ -443,7 +443,7 @@ class RegistWindow(QWidget):
     def print_record(self):
         self.save_record()
         self.close()
-        self.b = PrintWindow()
+        self.b = PrintWindow(self.serialnumber2)
         self.b.show()
 
     def save_record(self):
@@ -488,9 +488,9 @@ class RegistWindow(QWidget):
     def show_cal(self):
         self.d = Calendar()
         self.d.show()
-        self.d.date_signal.connect(self.change_date)
+        self.d.date_signal.connect(self.change_birthday)
 
-    def change_date(self, date):
+    def change_birthday(self, date):
         self.birthday.setDate(date)
 
     def show_death_cal(self):
@@ -575,13 +575,20 @@ class Calendar(QWidget):
 
 
 class PrintWindow(QWidget):
-    def __init__(self):
+    def __init__(self,serialnumber):
         super(PrintWindow,self).__init__()
         self.setWindowTitle('打印')
         self.setFixedSize(400,600)
+        self.serialnumber = serialnumber
         self.set_ui()
 
     def set_ui(self):
+        con = sqlite3.connect('basetable.db')
+        cur = con.cursor()
+        cur.execute('select * from base where serialnumber = %s'%self.serialnumber)
+        rslt = cur.fetchone()
+        text = rslt[0] +','+ rslt[2] +','+ rslt[3] +',' + self.change_date(rslt[4])+'出生,身份证号：'+ rslt[1]+','+ rslt[5]+'人,' + self.change_date(rslt[6]) + '因' +rslt[7]+'去世，特此证明！'
+
 
         self.bnt1 = QPushButton('关闭')
         self.bnt1.clicked.connect(self.back_click)
@@ -593,7 +600,9 @@ class PrintWindow(QWidget):
         self.label = QLabel('证明')
         self.label.setFont(QFont('Roman Times',16,QFont.Bold))
         self.label.setAlignment(Qt.AlignCenter)
-        self.content = QTextEdit()
+
+        self.content = QTextEdit(text)
+        self.content.setStyleSheet('QTextEdit{font-size:15px;text-indent:30px;}')
 
         self.vbox.addWidget(self.label)
         self.vbox.addWidget(self.content)
@@ -610,6 +619,11 @@ class PrintWindow(QWidget):
     def print_record(self):
         pass
 
+    def change_date(self,a):
+        date = datetime.datetime.utcfromtimestamp(a).strftime('%Y/%m/%d')
+        datelist = date.split('/')
+        return datelist[0]+'年'+datelist[1]+'月'+datelist[2]+'日'
+
 class QueryWindow(QWidget):
 
 
@@ -618,6 +632,7 @@ class QueryWindow(QWidget):
         self.setWindowTitle('查询')
         self.setFixedSize(600,400)
         self.set_ui()
+
 
     def set_ui(self):
 

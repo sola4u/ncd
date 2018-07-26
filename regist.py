@@ -587,7 +587,11 @@ class PrintWindow(QWidget):
         cur = con.cursor()
         cur.execute('select * from base where serialnumber = %s'%self.serialnumber)
         rslt = cur.fetchone()
-        text = rslt[0] +','+ rslt[2] +','+ rslt[3] +',' + self.change_date(rslt[4])+'出生,身份证号：'+ rslt[1]+','+ rslt[5]+'人,' + self.change_date(rslt[6]) + '因' +rslt[7]+'去世，特此证明！'
+        try:
+            if rslt[0]:
+                text = rslt[0] +','+ rslt[2] +','+ rslt[3] +',' + self.change_date(rslt[4])+'出生,身份证号：'+ rslt[1]+','+ rslt[5]+'人,' + self.change_date(rslt[6]) + '因' +rslt[7] + '去世，特此证明！'
+        except:
+            text = '姓名未填写！！！！'
 
 
         self.bnt1 = QPushButton('关闭')
@@ -620,9 +624,8 @@ class PrintWindow(QWidget):
         pass
 
     def change_date(self,a):
-        date = datetime.datetime.utcfromtimestamp(a).strftime('%Y/%m/%d')
-        datelist = date.split('/')
-        return datelist[0]+'年'+datelist[1]+'月'+datelist[2]+'日'
+        date = datetime.datetime.utcfromtimestamp(a)
+        return str(date.year)+'年'+ str(date.month) +'月'+str(date.day)+'日'
 
 class QueryWindow(QWidget):
 
@@ -630,7 +633,7 @@ class QueryWindow(QWidget):
     def __init__(self):
         super(QueryWindow,self).__init__()
         self.setWindowTitle('查询')
-        self.setFixedSize(600,400)
+        self.setFixedSize(800,600)
         self.set_ui()
 
 
@@ -638,8 +641,40 @@ class QueryWindow(QWidget):
 
         self.closebnt = QPushButton('close')
         self.closebnt.clicked.connect(self.back_click)
+        self.querybnt = QPushButton('query')
+        self.querybnt.clicked.connect(self.query_click)
+        self.clearbnt = QPushButton('clear')
+        self.clearbnt.clicked.connect(self.clear_click)
+        self.exportbnt = QPushButton('export')
+        self.exportbnt.clicked.connect(self.export_click)
+
+        self.namelabel = QLabel('name')
+        self.name = QLineEdit()
+        self.idlabel = QLabel("id")
+        self.id = QLineEdit()
+        self.begin_date_label = QLabel('begin_date')
+        self.begin_date = QDateEdit()
+        self.begin_date_choice = QPushButton(">")
+        self.begin_date_choice.clicked.connect(self.begin_date_input)
+        self.end_date_label = QLabel('end_date')
+        self.end_date = QDateEdit()
+        self.end_date_choice = QPushButton(">")
+        self.end_date_choice.clicked.connect(self.end_date_input)
 
         self.vbox = QVBoxLayout()
+        self.vbox.addWidget(self.namelabel)
+        self.vbox.addWidget(self.name)
+        self.vbox.addWidget(self.idlabel)
+        self.vbox.addWidget(self.id)
+        self.vbox.addWidget(self.begin_date_label)
+        self.vbox.addWidget(self.begin_date)
+        self.vbox.addWidget(self.begin_date_choice)
+        self.vbox.addWidget(self.end_date_label)
+        self.vbox.addWidget(self.end_date)
+        self.vbox.addWidget(self.end_date_choice)
+        self.vbox.addWidget(self.querybnt)
+        self.vbox.addWidget(self.clearbnt)
+        self.vbox.addWidget(self.exportbnt)
         self.vbox.addWidget(self.closebnt)
         self.setLayout(self.vbox)
 
@@ -648,6 +683,22 @@ class QueryWindow(QWidget):
         self.a = ListWindow()
         self.a.show()
 
+
+    def query_click(self):
+        pass
+
+    def clear_click (self):
+        pass
+
+    def export_click(self):
+        pass
+
+    def begin_date_input(self):
+        self.a = Calendar()
+        self.a.show()
+
+    def end_date_input(self):
+        pass
 
 
 

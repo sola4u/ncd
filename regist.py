@@ -295,9 +295,14 @@ class RegistWindow(QWidget):
         self.bnt2.clicked.connect(self.print_record)
 
         self.bnt3 = QPushButton('save')
-        self.bnt2.clicked.connect(self.save_record)
+        self.bnt3.clicked.connect(self.save_record)
 
-
+        self.seriallabel = QLabel('编号')
+        self.serialnumber = QLineEdit()
+        self.serialnumber2 = str(QDateTime.currentDateTime().toPyDateTime()).replace('/',
+                            '').replace(' ','').replace(':','').replace('.','').replace('-','')
+        self.serialnumber.setPlaceholderText(self.serialnumber2)
+        self.serialnumber.setReadOnly(True)
         self.namelabel = QLabel('姓名')
         self.name = QLineEdit()
 
@@ -408,6 +413,8 @@ class RegistWindow(QWidget):
         self.gridbox.addWidget(self.tel,12,1,1,2)
         self.gridbox.addWidget(self.regist_date_lable,13,0)
         self.gridbox.addWidget(self.regist_date,13,1,1,2)
+        self.gridbox.addWidget(self.seriallabel,14,0)
+        self.gridbox.addWidget(self.serialnumber,14,1,1,2)
 
         self.hbox.addWidget(self.bnt1)
         self.hbox.addWidget(self.bnt3)
@@ -432,6 +439,7 @@ class RegistWindow(QWidget):
         self.a.show()
 
     def print_record(self):
+        self.save_record()
         self.close()
         self.b = PrintWindow()
         self.b.show()
@@ -440,7 +448,8 @@ class RegistWindow(QWidget):
 
         db = sqlite3.connect('basetable.db')
         cur = db.cursor()
-        data = {'std_name':self.name.text(),
+        data = {'std_serial':self.serialnumber2,
+                'std_name':self.name.text(),
                 'std_id':self.id.text(),
                 'std_gender':self.gender.text(),
                 'std_race':self.race.currentText(),
@@ -450,14 +459,25 @@ class RegistWindow(QWidget):
                 'std_disease':self.disease.text(),
                 'std_family':self.family.text(),
                 'std_tel':self.tel.text(),
-                'std_regist_date':self.change_date(self.regist_date)
+                'std_regist_date':self.change_date(self.regist_date),
         }
-        sql = '''insert into base (name,id,gender,race,birthday,address,deathdate,disease,
-                    family,tel,regist_date) values (:std_name,:std_id,:std_gender,:std_race,
-                    :std_birthday,:std_address,:std_deathdate,:std_disease,:std_family,
-                    :std_tel,:std_regist_date)'''
-
-        cur.execute(sql,data)
+        cur.execute('select * from base where serialnumber =%s' %(self.serialnumber2))
+        res = cur.fetchone()
+        try:
+            if res[-1]:
+                sql = '''update base set name = :std_name,gender = :std_gender, id = :std_id,
+                                         race = :std_race, birthday = :std_birthday, address = :std_address,
+                                         deathdate = :std_deathdate, disease = :std_disease, family = :std_family,
+                                         tel = :std_tel, regist_date = :std_regist_date
+                        WHERE serialnumber = %s
+                        '''%(self.serialnumber2)
+                cur.execute(sql,data)
+        except:
+             sql = '''insert into base (serialnumber,name,id,gender,race,birthday,address,deathdate,disease,
+                            family,tel,regist_date,is_deleted) values (:std_serial,:std_name,:std_id,:std_gender,:std_race,
+                            :std_birthday,:std_address,:std_deathdate,:std_disease,:std_family,
+                            :std_tel,:std_regist_date,0)'''
+             cur.execute(sql,data)
         db.commit()
         db.close()
 

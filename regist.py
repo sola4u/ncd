@@ -288,13 +288,13 @@ class RegistWindow(QWidget):
 
     def set_ui(self):
 
-        self.bnt1 = QPushButton('close')
+        self.bnt1 = QPushButton('返回')
         self.bnt1.clicked.connect(self.back_click)
 
-        self.bnt2 = QPushButton('print')
+        self.bnt2 = QPushButton('打印')
         self.bnt2.clicked.connect(self.print_record)
 
-        self.bnt3 = QPushButton('save')
+        self.bnt3 = QPushButton('保存')
         self.bnt3.clicked.connect(self.save_record)
 
         self.seriallabel = QLabel('编号')
@@ -380,26 +380,28 @@ class RegistWindow(QWidget):
         self.gridbox = QGridLayout()
         self.hbox = QHBoxLayout()
 
-        self.gridbox.addWidget(self.namelabel,1,0)
-        self.gridbox.addWidget(self.name,1,1,1,2)
-        self.gridbox.addWidget(self.idlabel,2,0)
-        self.gridbox.addWidget(self.id,2,1,1,2)
-        self.gridbox.addWidget(self.idmsg,2,3)
-        self.gridbox.addWidget(self.genderlabel,3,0)
-        self.gridbox.addWidget(self.gender2box,3,1)
-        self.gridbox.addWidget(self.racelabel,4,0)
-        self.gridbox.addWidget(self.race,4,1,1,2)
-        self.gridbox.addWidget(self.birthlable,5,0)
-        self.gridbox.addWidget(self.birthday,5,1,1,2)
-        self.gridbox.addWidget(self.birthchoice,5,3)
-        self.gridbox.addWidget(self.provincelabel,6,0)
-        self.gridbox.addWidget(self.province,6,1)
-        self.gridbox.addWidget(self.citylable,6,2)
-        self.gridbox.addWidget(self.city,6,3)
-        self.gridbox.addWidget(self.countrylabel,7,0)
-        self.gridbox.addWidget(self.country,7,1)
-        self.gridbox.addWidget(self.townlabel,7,2)
-        self.gridbox.addWidget(self.town,7,3)
+        self.gridbox.addWidget(self.seriallabel,1,0)
+        self.gridbox.addWidget(self.serialnumber,1,1,1,2)
+        self.gridbox.addWidget(self.namelabel,2,0)
+        self.gridbox.addWidget(self.name,2,1,1,2)
+        self.gridbox.addWidget(self.idlabel,3,0)
+        self.gridbox.addWidget(self.id,3,1,1,2)
+        self.gridbox.addWidget(self.idmsg,3,3)
+        self.gridbox.addWidget(self.genderlabel,4,0)
+        self.gridbox.addWidget(self.gender2box,4,1)
+        self.gridbox.addWidget(self.racelabel,5,0)
+        self.gridbox.addWidget(self.race,5,1,1,2)
+        self.gridbox.addWidget(self.birthlable,6,0)
+        self.gridbox.addWidget(self.birthday,6,1,1,2)
+        self.gridbox.addWidget(self.birthchoice,6,3)
+        # self.gridbox.addWidget(self.provincelabel,6,0)
+        # self.gridbox.addWidget(self.province,6,1)
+        # self.gridbox.addWidget(self.citylable,6,2)
+        # self.gridbox.addWidget(self.city,6,3)
+        # self.gridbox.addWidget(self.countrylabel,7,0)
+        # self.gridbox.addWidget(self.country,7,1)
+        # self.gridbox.addWidget(self.townlabel,7,2)
+        # self.gridbox.addWidget(self.town,7,3)
         self.gridbox.addWidget(self.addresslabel,8,0)
         self.gridbox.addWidget(self.address,8,1,1,2)
         self.gridbox.addWidget(self.deathlabel,9,0)
@@ -413,8 +415,6 @@ class RegistWindow(QWidget):
         self.gridbox.addWidget(self.tel,12,1,1,2)
         self.gridbox.addWidget(self.regist_date_lable,13,0)
         self.gridbox.addWidget(self.regist_date,13,1,1,2)
-        self.gridbox.addWidget(self.seriallabel,14,0)
-        self.gridbox.addWidget(self.serialnumber,14,1,1,2)
 
         self.hbox.addWidget(self.bnt1)
         self.hbox.addWidget(self.bnt3)
@@ -425,7 +425,9 @@ class RegistWindow(QWidget):
         self.formbox.setLayout(self.gridbox)
         self.h2box.setLayout(self.hbox)
 
-        self.blank = QLabel('      ====================登  记======================')
+        self.blank = QLabel('==========登  记==========')
+        self.blank.setFont(QFont('Roman Times', 16,QFont.Bold))
+        self.blank.setAlignment(Qt.AlignCenter)
         self.mainbox.addWidget(self.blank)
         self.mainbox.addWidget(self.formbox)
         self.mainbox.addWidget(self.blank)
@@ -469,8 +471,7 @@ class RegistWindow(QWidget):
                                          race = :std_race, birthday = :std_birthday, address = :std_address,
                                          deathdate = :std_deathdate, disease = :std_disease, family = :std_family,
                                          tel = :std_tel, regist_date = :std_regist_date
-                        WHERE serialnumber = %s
-                        '''%(self.serialnumber2)
+                                         WHERE serialnumber = %s'''%(self.serialnumber2)
                 cur.execute(sql,data)
         except:
              sql = '''insert into base (serialnumber,name,id,gender,race,birthday,address,deathdate,disease,
@@ -478,7 +479,10 @@ class RegistWindow(QWidget):
                             :std_birthday,:std_address,:std_deathdate,:std_disease,:std_family,
                             :std_tel,:std_regist_date,0)'''
              cur.execute(sql,data)
-        db.commit()
+        if self.name.text() != '':
+            db.commit()
+        else:
+            pass
         db.close()
 
     def show_cal(self):
@@ -579,12 +583,22 @@ class PrintWindow(QWidget):
 
     def set_ui(self):
 
-        self.bnt1 = QPushButton('close')
+        self.bnt1 = QPushButton('关闭')
         self.bnt1.clicked.connect(self.back_click)
+        self.bnt2 = QPushButton('打印')
+        self.bnt2.clicked.connect(self.print_record)
 
         self.vbox = QVBoxLayout()
-        self.vbox.addWidget(self.bnt1)
 
+        self.label = QLabel('证明')
+        self.label.setFont(QFont('Roman Times',16,QFont.Bold))
+        self.label.setAlignment(Qt.AlignCenter)
+        self.content = QTextEdit()
+
+        self.vbox.addWidget(self.label)
+        self.vbox.addWidget(self.content)
+        self.vbox.addWidget(self.bnt1)
+        self.vbox.addWidget(self.bnt2)
         self.setLayout(self.vbox)
 
 
@@ -592,6 +606,9 @@ class PrintWindow(QWidget):
         self.close()
         self.a = ListWindow()
         self.a.show()
+
+    def print_record(self):
+        pass
 
 class QueryWindow(QWidget):
 

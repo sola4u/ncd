@@ -662,20 +662,53 @@ class QueryWindow(QWidget):
         self.end_date_choice.clicked.connect(self.end_date_input)
 
         self.vbox = QVBoxLayout()
-        self.vbox.addWidget(self.namelabel)
-        self.vbox.addWidget(self.name)
-        self.vbox.addWidget(self.idlabel)
-        self.vbox.addWidget(self.id)
-        self.vbox.addWidget(self.begin_date_label)
-        self.vbox.addWidget(self.begin_date)
-        self.vbox.addWidget(self.begin_date_choice)
-        self.vbox.addWidget(self.end_date_label)
-        self.vbox.addWidget(self.end_date)
-        self.vbox.addWidget(self.end_date_choice)
-        self.vbox.addWidget(self.querybnt)
-        self.vbox.addWidget(self.clearbnt)
-        self.vbox.addWidget(self.exportbnt)
-        self.vbox.addWidget(self.closebnt)
+
+        self.head_box = QHBoxLayout()
+
+
+        self.demand_box = QVBoxLayout()
+        self.demand_box1 = QHBoxLayout()
+        self.demand_box2 = QHBoxLayout()
+        self.demand_box1.addWidget(self.namelabel)
+        self.demand_box1.addWidget(self.name)
+        self.demand_box1.addWidget(self.begin_date_label)
+        self.demand_box1.addWidget(self.begin_date)
+        self.demand_box1.addWidget(self.begin_date_choice)
+        self.demand_box2.addWidget(self.idlabel)
+        self.demand_box2.addWidget(self.id)
+        self.demand_box2.addWidget(self.end_date_label)
+        self.demand_box2.addWidget(self.end_date_choice)
+
+        self.bnt_box = QVBoxLayout()
+        self.bnt_box1 = QHBoxLayout()
+        self.bnt_box2 = QHBoxLayout()
+        self.bnt_box1.addWidget(self.querybnt)
+        self.bnt_box1.addWidget(self.exportbnt)
+        self.bnt_box2.addWidget(self.clearbnt)
+        self.bnt_box2.addWidget(self.closebnt)
+
+        self.demand_box_layout = QWidget()
+        self.bnt_box_layout = QWidget()
+        self.head_box_layout = QWidget()
+
+        self.demand_box_layout.setLayout(self.demand_box1)
+        self.demand_box_layout.setLayout(self.demand_box2)
+
+        self.bnt_box_layout.setLayout(self.bnt_box1)
+        self.bnt_box_layout.setLayout(self.bnt_box2)
+
+        self.demand_box.addWidget(self.demand_box_layout)
+        self.bnt_box.addWidget(self.bnt_box_layout)
+
+        self.head_box_layout.setLayout(self.demand_box)
+        self.head_box_layout.setLayout(self.bnt_box)
+
+        self.head_box.addWidget(self.head_box_layout)
+        self.vbox2 = QWidget()
+        self.vbox2.setLayout(self.head_box)
+
+        self.vbox.addWidget(self.vbox2)
+
         self.setLayout(self.vbox)
 
     def back_click(self):

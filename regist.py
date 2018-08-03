@@ -299,7 +299,7 @@ class RegistWindow(QWidget):
 
         self.seriallabel = QLabel('编号')
         self.serialnumber = QLineEdit()
-        self.serialnumber2 = str(QDateTime.currentDateTime().toPyDateTime()).replace('/',
+        self.serialnumber2 = 'hs' + str(QDateTime.currentDateTime().toPyDateTime()).replace('/',
                             '').replace(' ','').replace(':','').replace('.','').replace('-','')
         self.serialnumber.setPlaceholderText(self.serialnumber2)
         self.serialnumber.setReadOnly(True)
@@ -639,77 +639,63 @@ class QueryWindow(QWidget):
 
     def set_ui(self):
 
-        self.closebnt = QPushButton('close')
+        self.closebnt = QPushButton('关闭(ESC)')
         self.closebnt.clicked.connect(self.back_click)
-        self.querybnt = QPushButton('query')
+        self.querybnt = QPushButton('查询(ENT)')
         self.querybnt.clicked.connect(self.query_click)
-        self.clearbnt = QPushButton('clear')
+        self.clearbnt = QPushButton('清空(F5)')
         self.clearbnt.clicked.connect(self.clear_click)
-        self.exportbnt = QPushButton('export')
+        self.exportbnt = QPushButton('导出')
         self.exportbnt.clicked.connect(self.export_click)
+        self.table = QTableWidget(20,11)
 
-        self.namelabel = QLabel('name')
+        self.namelabel = QLabel('姓名')
         self.name = QLineEdit()
-        self.idlabel = QLabel("id")
+        self.idlabel = QLabel("编号")
         self.id = QLineEdit()
-        self.begin_date_label = QLabel('begin_date')
+        self.begin_date_label = QLabel('开始日期')
         self.begin_date = QDateEdit()
-        self.begin_date_choice = QPushButton(">")
+        self.begin_date_choice = QPushButton("↓")
         self.begin_date_choice.clicked.connect(self.begin_date_input)
-        self.end_date_label = QLabel('end_date')
-        self.end_date = QDateEdit()
-        self.end_date_choice = QPushButton(">")
+        self.end_date_label = QLabel('截止日期')
+        self.end_date = QDateEdit(QDate.currentDate())
+        self.end_date_choice = QPushButton("↓")
         self.end_date_choice.clicked.connect(self.end_date_input)
 
-        self.vbox = QVBoxLayout()
+        self.demand_box = QGridLayout()
+        self.demand_box.addWidget(self.namelabel,0,0,1,1)
+        self.demand_box.addWidget(self.name,0,1,1,2)
+        self.demand_box.addWidget(self.begin_date_label,0,3,1,1)
+        self.demand_box.addWidget(self.begin_date,0,4,1,2)
+        self.demand_box.addWidget(self.begin_date_choice,0,6,1,1)
+        self.demand_box.addWidget(self.idlabel,1,0,1,1)
+        self.demand_box.addWidget(self.id,1,1,1,2)
+        self.demand_box.addWidget(self.end_date_label,1,3,1,1)
+        self.demand_box.addWidget(self.end_date,1,4,1,2)
+        self.demand_box.addWidget(self.end_date_choice,1,6,1,1)
 
-        self.head_box = QHBoxLayout()
-
-
-        self.demand_box = QVBoxLayout()
-        self.demand_box1 = QHBoxLayout()
-        self.demand_box2 = QHBoxLayout()
-        self.demand_box1.addWidget(self.namelabel)
-        self.demand_box1.addWidget(self.name)
-        self.demand_box1.addWidget(self.begin_date_label)
-        self.demand_box1.addWidget(self.begin_date)
-        self.demand_box1.addWidget(self.begin_date_choice)
-        self.demand_box2.addWidget(self.idlabel)
-        self.demand_box2.addWidget(self.id)
-        self.demand_box2.addWidget(self.end_date_label)
-        self.demand_box2.addWidget(self.end_date_choice)
-
-        self.bnt_box = QVBoxLayout()
-        self.bnt_box1 = QHBoxLayout()
-        self.bnt_box2 = QHBoxLayout()
-        self.bnt_box1.addWidget(self.querybnt)
-        self.bnt_box1.addWidget(self.exportbnt)
-        self.bnt_box2.addWidget(self.clearbnt)
-        self.bnt_box2.addWidget(self.closebnt)
+        self.bnt_box = QGridLayout()
+        self.bnt_box.addWidget(self.querybnt,0,0)
+        self.bnt_box.addWidget(self.exportbnt,0,1)
+        self.bnt_box.addWidget(self.clearbnt,1,0)
+        self.bnt_box.addWidget(self.closebnt,1,1)
 
         self.demand_box_layout = QWidget()
         self.bnt_box_layout = QWidget()
-        self.head_box_layout = QWidget()
 
-        self.demand_box_layout.setLayout(self.demand_box1)
-        self.demand_box_layout.setLayout(self.demand_box2)
+        self.demand_box_layout.setLayout(self.demand_box)
+        self.bnt_box_layout.setLayout(self.bnt_box)
 
-        self.bnt_box_layout.setLayout(self.bnt_box1)
-        self.bnt_box_layout.setLayout(self.bnt_box2)
+        self.table.verticalHeader().setVisible(False)
+        self.table.setHorizontalHeaderLabels(['编号','姓名','性别','身份照号码','出生日期','常住地址','死亡日期','死因','登记日期','是否报告',''])
 
-        self.demand_box.addWidget(self.demand_box_layout)
-        self.bnt_box.addWidget(self.bnt_box_layout)
 
-        self.head_box_layout.setLayout(self.demand_box)
-        self.head_box_layout.setLayout(self.bnt_box)
+        self.head_box = QGridLayout()
+        self.head_box.addWidget(self.demand_box_layout,0,0,1,3)
+        self.head_box.addWidget(self.bnt_box_layout,0,3,1,1)
+        self.head_box.addWidget(self.table,1,0,4,4)
 
-        self.head_box.addWidget(self.head_box_layout)
-        self.vbox2 = QWidget()
-        self.vbox2.setLayout(self.head_box)
-
-        self.vbox.addWidget(self.vbox2)
-
-        self.setLayout(self.vbox)
+        self.setLayout(self.head_box)
 
     def back_click(self):
         self.close()
@@ -718,7 +704,17 @@ class QueryWindow(QWidget):
 
 
     def query_click(self):
-        pass
+        con = sqlite3.connect('basetable.db')
+        cur = con.cursor()
+        cur.execute('select * from base')
+        msg = cur.fetchall()
+        k = 0
+        for i in msg:
+            for j in range(14):
+                print(i[j])
+
+                # self.table.setItem(k,j,QTableWidgetItem(i[j]))
+            k += 1
 
     def clear_click (self):
         pass
@@ -733,6 +729,13 @@ class QueryWindow(QWidget):
     def end_date_input(self):
         pass
 
+    def keyPressEvent(self, e):
+        if e.key() == Qt.Key_Escape:
+            self.back_click()
+        if e.key() == Qt.Key_Enter:
+            self.query_click()
+        if e.key() == Qt.Key_F5:
+            self.clear_click()
 
 
 

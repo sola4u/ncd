@@ -299,8 +299,8 @@ class RegistWindow(QWidget):
 
         self.seriallabel = QLabel('编号')
         self.serialnumber = QLineEdit()
-        self.serialnumber2 = 'hs' + str(QDateTime.currentDateTime().toPyDateTime()).replace('/',
-                            '').replace(' ','').replace(':','').replace('.','').replace('-','')
+        self.serialnumber2 = str(QDateTime.currentDateTime().toPyDateTime()).replace('/',
+                            '').replace(' ','').replace(':','').replace('.','').replace('-','')[:-3]
         self.serialnumber.setPlaceholderText(self.serialnumber2)
         self.serialnumber.setReadOnly(True)
         self.namelabel = QLabel('姓名')
@@ -687,7 +687,7 @@ class QueryWindow(QWidget):
         self.bnt_box_layout.setLayout(self.bnt_box)
 
         self.table.verticalHeader().setVisible(False)
-        self.table.setHorizontalHeaderLabels(['编号','姓名','性别','身份照号码','出生日期','常住地址','死亡日期','死因','登记日期','是否报告',''])
+        self.table.setHorizontalHeaderLabels(['编号','姓名','身份照号码','性别','出生日期','常住地址','死亡日期','死亡原因','登记日期','是否报告',''])
 
 
         self.head_box = QGridLayout()
@@ -706,15 +706,21 @@ class QueryWindow(QWidget):
     def query_click(self):
         con = sqlite3.connect('basetable.db')
         cur = con.cursor()
-        cur.execute('select * from base')
+        cur.execute('select serialnumber,name,id,gender,birthday,address,deathdate,disease,regist_date,is_deleted from base')
         msg = cur.fetchall()
         k = 0
         for i in msg:
-            for j in range(14):
+            for j in range(9):
                 print(i[j])
-
-                # self.table.setItem(k,j,QTableWidgetItem(i[j]))
+                if j in [4,6,8]:
+                    self.table.setItem(k,j,QTableWidgetItem(self.to_date(i[j])))
+                else:
+                    self.table.setItem(k,j,QTableWidgetItem(i[j]))
             k += 1
+
+    def to_date(self,a):
+        b = datetime.datetime.fromtimestamp(a).strftime('%Y-%m-%d')
+        return b
 
     def clear_click (self):
         pass
@@ -727,12 +733,13 @@ class QueryWindow(QWidget):
         self.a.show()
 
     def end_date_input(self):
-        pass
+        self.a = Calendar()
+        self.a.show()
 
     def keyPressEvent(self, e):
         if e.key() == Qt.Key_Escape:
             self.back_click()
-        if e.key() == Qt.Key_Enter:
+        if e.key() == Qt.Key_Return:
             self.query_click()
         if e.key() == Qt.Key_F5:
             self.clear_click()

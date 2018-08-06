@@ -297,6 +297,9 @@ class RegistWindow(QWidget):
         self.bnt3 = QPushButton('保存')
         self.bnt3.clicked.connect(self.save_record)
 
+        self.bnt4 = QPushButton('添加')
+        self.bnt4.clicked.connect(self.add_record)
+
         self.seriallabel = QLabel('编号')
         self.serialnumber = QLineEdit()
         self.serialnumber2 = str(QDateTime.currentDateTime().toPyDateTime()).replace('/',
@@ -416,9 +419,10 @@ class RegistWindow(QWidget):
         self.gridbox.addWidget(self.regist_date_lable,13,0)
         self.gridbox.addWidget(self.regist_date,13,1,1,2)
 
-        self.hbox.addWidget(self.bnt1)
+        self.hbox.addWidget(self.bnt4)
         self.hbox.addWidget(self.bnt3)
         self.hbox.addWidget(self.bnt2)
+        self.hbox.addWidget(self.bnt1)
 
         self.formbox = QWidget()
         self.h2box = QWidget()
@@ -548,6 +552,12 @@ class RegistWindow(QWidget):
         pydate = str(a.date().toPyDate())
         date2 = time.mktime(time.strptime(pydate,'%Y-%m-%d'))
         return date2
+
+    def add_record(self):
+        self.save_record()
+        self.close()
+        self.a = RegistWindow()
+        self.a.show()
 
 
 

@@ -454,7 +454,7 @@ class RegistWindow(QWidget):
 
         db = sqlite3.connect('basetable.db')
         cur = db.cursor()
-        data = {'std_serial':self.serialnumber2,
+        data = {'std_serial':self.serialnumber.text(),
                 'std_name':self.name.text(),
                 'std_id':self.id.text(),
                 'std_gender':self.gender.text(),
@@ -467,7 +467,7 @@ class RegistWindow(QWidget):
                 'std_tel':self.tel.text(),
                 'std_regist_date':self.change_date(self.regist_date),
         }
-        cur.execute('select * from base where serialnumber =%s' %(self.serialnumber2))
+        cur.execute('select * from base where serialnumber =%s' %(self.serialnumber.text()))
         res = cur.fetchone()
         try:
             if res[-1]:
@@ -475,7 +475,7 @@ class RegistWindow(QWidget):
                                          race = :std_race, birthday = :std_birthday, address = :std_address,
                                          deathdate = :std_deathdate, disease = :std_disease, family = :std_family,
                                          tel = :std_tel, regist_date = :std_regist_date
-                                         WHERE serialnumber = %s'''%(self.serialnumber2)
+                                         WHERE serialnumber = %s'''%(self.serialnumber.text())
                 cur.execute(sql,data)
         except:
              sql = '''insert into base (serialnumber,name,id,gender,race,birthday,address,deathdate,disease,
@@ -643,7 +643,7 @@ class QueryWindow(QWidget):
     def __init__(self):
         super(QueryWindow,self).__init__()
         self.setWindowTitle('查询')
-        self.setFixedSize(800,600)
+        self.setFixedSize(1200,960)
         self.set_ui()
 
 
@@ -697,7 +697,7 @@ class QueryWindow(QWidget):
         self.bnt_box_layout.setLayout(self.bnt_box)
 
         self.table.verticalHeader().setVisible(False)
-        self.table.setHorizontalHeaderLabels(['编号','姓名','身份照号码','性别','出生日期','常住地址','死亡日期','死亡原因','登记日期','是否报告',''])
+        self.table.setHorizontalHeaderLabels(['编号','姓名','身份照号码','性别','出生日期','常住地址','死亡日期','死亡原因','登记日期','是否报告','操作'])
 
 
         self.head_box = QGridLayout()
@@ -721,12 +721,85 @@ class QueryWindow(QWidget):
         k = 0
         for i in msg:
             for j in range(9):
-                print(i[j])
                 if j in [4,6,8]:
                     self.table.setItem(k,j,QTableWidgetItem(self.to_date(i[j])))
                 else:
                     self.table.setItem(k,j,QTableWidgetItem(i[j]))
+                self.table.setCellWidget(k,10,self.button_row(i[0]))
             k += 1
+
+    def button_row(self, id):
+        self.widget = QWidget()
+        self.id = id
+        # self.edit_bnt = QPushButton('修改')
+        self.view_bnt = QPushButton('查看')
+        self.del_bnt = QPushButton('删除')
+        self.regret_bnt = QPushButton('恢复')
+
+        self.view_bnt.setStyleSheet('''text-align:center;
+                                       background-color:green;
+                                       border-style:outset;
+                                       color:white;
+                                    ''')
+        self.del_bnt.setStyleSheet('''text-align:center;
+                                       background-color: red;
+                                       border-style:outset;
+                                       color:white;
+                                    ''')
+        self.regret_bnt.setStyleSheet('''text-align:center;
+                                       background-color: blue;
+                                       border-style:outset;
+                                       color:white;
+                                    ''')
+        # self.del_bnt.clicked.connect(self.del_record)
+        # self.regret_bnt.clicked.connect(self.regret_record)
+
+        self.hlayout = QHBoxLayout()
+        con = sqlite3.connect('basetable.db')
+        cur = con.cursor()
+        cur.execute('select * from base where serialnumber = %s'% (self.id))
+        a = cur.fetchone()
+        if a[-1] == 1:
+            self.hlayout.addWidget(self.regret_bnt)
+        else:
+            self.hlayout.addWidget(self.view_bnt)
+            self.hlayout.addWidget(self.del_bnt)
+        self.view_bnt.clicked.connect(lambda:self.view_record(a[0]))
+        self.hlayout.setContentsMargins(5,2,5,2)
+        self.widget.setLayout(self.hlayout)
+        return self.widget
+
+    def view_record(self,id):
+        con = sqlite3.connect('basetable.db')
+        cur = con.cursor()
+        cur.execute('select * from base where serialnumber = %s'%(id))
+        b = cur.fetchone()
+        self.a = RegistWindow()
+        self.a.serialnumber.setText(b[0])
+        self.a.name.setText(b[1])
+        self.a.id.setText(b[2])
+        self.a.gender.setText(b[3])
+        if b[3] == '男':
+            self.a.male.setChecked(True)
+        else:
+            self.a.female.setChecked(True)
+        self.a.race.setToolTip(b[4])
+        birthday_list = self.to_pydate(b[5])
+        self.a.birthday.setDate(QDate(birthday_list[0],birthday_list[1],birthday_list[2]))
+        self.a.address.setText(b[6])
+        deathdate_list = self.to_pydate(b[7])
+        self.a.deathdate.setDate(QDate(deathdate_list[0],deathdate_list[1],deathdate_list[2]))
+        self.a.disease.setText(b[8])
+        self.a.family.setText(b[9])
+        self.a.tel.setText(b[10])
+        regist_list = self.to_pydate(b[11])
+        self.a.regist_date.setDate(QDate(regist_list[0],regist_list[1],regist_list[2]))
+        self.a.show()
+
+
+    def to_pydate(self,a):
+        b = self.to_date(a).split('-')
+        return [int(i) for i in b]
 
     def to_date(self,a):
         b = datetime.datetime.fromtimestamp(a).strftime('%Y-%m-%d')

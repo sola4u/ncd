@@ -467,8 +467,9 @@ class RegistWindow(QWidget):
                 'std_tel':self.tel.text(),
                 'std_regist_date':self.change_date(self.regist_date),
         }
-        cur.execute('select * from base where serialnumber =%s' %(self.serialnumber.text()))
+        cur.execute('select * from base where serialnumber = %s'%(self.serialnumber2))
         res = cur.fetchone()
+        print(res)
         try:
             if res[-1]:
                 sql = '''update base set name = :std_name,gender = :std_gender, id = :std_id,
@@ -757,7 +758,7 @@ class QueryWindow(QWidget):
         self.hlayout = QHBoxLayout()
         con = sqlite3.connect('basetable.db')
         cur = con.cursor()
-        cur.execute('select * from base where serialnumber = %s'% (self.id))
+        cur.execute('select * from base where serialnumber = %s'%(self.id))
         a = cur.fetchone()
         if a[-1] == 1:
             self.hlayout.addWidget(self.regret_bnt)

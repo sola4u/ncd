@@ -454,7 +454,7 @@ class RegistWindow(QWidget):
 
         db = sqlite3.connect('basetable.db')
         cur = db.cursor()
-        data = {'std_serial':self.serialnumber.text(),
+        data = {'std_serial':self.serialnumber2,
                 'std_name':self.name.text(),
                 'std_id':self.id.text(),
                 'std_gender':self.gender.text(),
@@ -469,14 +469,13 @@ class RegistWindow(QWidget):
         }
         cur.execute('select * from base where serialnumber = %s'%(self.serialnumber2))
         res = cur.fetchone()
-        print(res)
         try:
-            if res[-1]:
+            if res[0]:
                 sql = '''update base set name = :std_name,gender = :std_gender, id = :std_id,
                                          race = :std_race, birthday = :std_birthday, address = :std_address,
                                          deathdate = :std_deathdate, disease = :std_disease, family = :std_family,
                                          tel = :std_tel, regist_date = :std_regist_date
-                                         WHERE serialnumber = %s'''%(self.serialnumber.text())
+                                         WHERE serialnumber = %s'''%(self.serialnumber2)
                 cur.execute(sql,data)
         except:
              sql = '''insert into base (serialnumber,name,id,gender,race,birthday,address,deathdate,disease,
@@ -654,7 +653,7 @@ class QueryWindow(QWidget):
         self.closebnt.clicked.connect(self.back_click)
         self.querybnt = QPushButton('查询(ENT)')
         self.querybnt.clicked.connect(self.query_click)
-        self.clearbnt = QPushButton('清空(F5)')
+        self.clearbnt = QPushButton('清空(F1)')
         self.clearbnt.clicked.connect(self.clear_click)
         self.exportbnt = QPushButton('导出')
         self.exportbnt.clicked.connect(self.export_click)
@@ -675,21 +674,21 @@ class QueryWindow(QWidget):
 
         self.demand_box = QGridLayout()
         self.demand_box.addWidget(self.namelabel,0,0,1,1)
-        self.demand_box.addWidget(self.name,0,1,1,2)
-        self.demand_box.addWidget(self.begin_date_label,0,3,1,1)
-        self.demand_box.addWidget(self.begin_date,0,4,1,2)
-        self.demand_box.addWidget(self.begin_date_choice,0,6,1,1)
-        self.demand_box.addWidget(self.idlabel,1,0,1,1)
-        self.demand_box.addWidget(self.id,1,1,1,2)
-        self.demand_box.addWidget(self.end_date_label,1,3,1,1)
-        self.demand_box.addWidget(self.end_date,1,4,1,2)
-        self.demand_box.addWidget(self.end_date_choice,1,6,1,1)
+        self.demand_box.addWidget(self.name,0,1,1,1)
+        self.demand_box.addWidget(self.idlabel,0,2,1,1)
+        self.demand_box.addWidget(self.id,0,3,1,1)
+        self.demand_box.addWidget(self.begin_date_label,0,4,1,1)
+        self.demand_box.addWidget(self.begin_date,0,5,1,2)
+        self.demand_box.addWidget(self.begin_date_choice,0,8,1,1)
+        self.demand_box.addWidget(self.end_date_label,0,9,1,1)
+        self.demand_box.addWidget(self.end_date,0,10,1,5)
+        self.demand_box.addWidget(self.end_date_choice,0,16,1,1)
 
         self.bnt_box = QGridLayout()
-        self.bnt_box.addWidget(self.querybnt,0,0)
-        self.bnt_box.addWidget(self.exportbnt,0,1)
-        self.bnt_box.addWidget(self.clearbnt,1,0)
-        self.bnt_box.addWidget(self.closebnt,1,1)
+        self.bnt_box.addWidget(self.querybnt,0,1,1,1)
+        self.bnt_box.addWidget(self.clearbnt,0,2,1,1)
+        self.bnt_box.addWidget(self.exportbnt,0,3,1,1)
+        self.bnt_box.addWidget(self.closebnt,0,4,1,1)
 
         self.demand_box_layout = QWidget()
         self.bnt_box_layout = QWidget()
@@ -702,9 +701,9 @@ class QueryWindow(QWidget):
 
 
         self.head_box = QGridLayout()
-        self.head_box.addWidget(self.demand_box_layout,0,0,1,3)
-        self.head_box.addWidget(self.bnt_box_layout,0,3,1,1)
-        self.head_box.addWidget(self.table,1,0,4,4)
+        self.head_box.addWidget(self.demand_box_layout,0,0,1,1)
+        self.head_box.addWidget(self.bnt_box_layout,0,1,1,1)
+        self.head_box.addWidget(self.table,1,0,1,2)
 
         self.setLayout(self.head_box)
 
@@ -731,7 +730,7 @@ class QueryWindow(QWidget):
 
     def button_row(self, id):
         self.widget = QWidget()
-        self.id = id
+        self.query_id = id
         # self.edit_bnt = QPushButton('修改')
         self.view_bnt = QPushButton('查看')
         self.del_bnt = QPushButton('删除')
@@ -740,16 +739,19 @@ class QueryWindow(QWidget):
         self.view_bnt.setStyleSheet('''text-align:center;
                                        background-color:green;
                                        border-style:outset;
+                                       height:20px;
                                        color:white;
                                     ''')
         self.del_bnt.setStyleSheet('''text-align:center;
                                        background-color: red;
                                        border-style:outset;
+                                       height:20px;
                                        color:white;
                                     ''')
         self.regret_bnt.setStyleSheet('''text-align:center;
-                                       background-color: blue;
+                                       background-color: grey;
                                        border-style:outset;
+                                       height:20px;
                                        color:white;
                                     ''')
         # self.del_bnt.clicked.connect(self.del_record)
@@ -758,7 +760,7 @@ class QueryWindow(QWidget):
         self.hlayout = QHBoxLayout()
         con = sqlite3.connect('basetable.db')
         cur = con.cursor()
-        cur.execute('select * from base where serialnumber = %s'%(self.id))
+        cur.execute('select * from base where serialnumber = %s'%(self.query_id))
         a = cur.fetchone()
         if a[-1] == 1:
             self.hlayout.addWidget(self.regret_bnt)
@@ -766,6 +768,8 @@ class QueryWindow(QWidget):
             self.hlayout.addWidget(self.view_bnt)
             self.hlayout.addWidget(self.del_bnt)
         self.view_bnt.clicked.connect(lambda:self.view_record(a[0]))
+        self.del_bnt.clicked.connect(lambda:self.del_record(a[0]))
+        self.regret_bnt.clicked.connect(lambda:self.regret_record(a[0]))
         self.hlayout.setContentsMargins(5,2,5,2)
         self.widget.setLayout(self.hlayout)
         return self.widget
@@ -795,8 +799,36 @@ class QueryWindow(QWidget):
         self.a.tel.setText(b[10])
         regist_list = self.to_pydate(b[11])
         self.a.regist_date.setDate(QDate(regist_list[0],regist_list[1],regist_list[2]))
+        self.a.serialnumber2 = b[0]
+        self.a.bnt1.setText('关闭')
+        self.a.bnt1.clicked.disconnect(self.a.back_click)
+        self.a.bnt1.clicked.connect(self.a.close)
+        self.a.bnt1.clicked.connect(self.query_click)
         self.a.show()
 
+    def del_record(self, id):
+        con = sqlite3.connect('basetable.db')
+        cur = con.cursor()
+        cur.execute('update base set is_deleted = 1 where serialnumber = %s'%(id))
+        a = QMessageBox.information(self,'提示','是否更改信息？',QMessageBox.Yes,QMessageBox.No)
+        if a == QMessageBox.Yes:
+            con.commit()
+        else:
+            pass
+        con.close()
+        self.query_click()
+
+    def regret_record(self, id):
+        con = sqlite3.connect('basetable.db')
+        cur = con.cursor()
+        cur.execute('update base set is_deleted = 0 where serialnumber = %s'%(id))
+        a = QMessageBox.information(self,'提示','是否更改信息？',QMessageBox.Yes,QMessageBox.No)
+        if a == QMessageBox.Yes:
+            con.commit()
+        else:
+            pass
+        con.close()
+        self.query_click()
 
     def to_pydate(self,a):
         b = self.to_date(a).split('-')
@@ -807,7 +839,11 @@ class QueryWindow(QWidget):
         return b
 
     def clear_click (self):
-        pass
+        self.name.clear()
+        self.id.clear()
+        self.begin_date.setDate(QDate(2000,1,1))
+        self.end_date.setDate(QDate.currentDate())
+
 
     def export_click(self):
         pass
@@ -815,17 +851,25 @@ class QueryWindow(QWidget):
     def begin_date_input(self):
         self.a = Calendar()
         self.a.show()
+        self.a.date_signal.connect(self.begin_date_confirm)
+
+    def begin_date_confirm(self, date):
+        self.begin_date.setDate(date)
 
     def end_date_input(self):
         self.a = Calendar()
         self.a.show()
+        self.a.date_signal.connect(self.end_date_confirm)
+
+    def end_date_confirm(self, date):
+        self.end_date.setDate(date)
 
     def keyPressEvent(self, e):
         if e.key() == Qt.Key_Escape:
             self.back_click()
         if e.key() == Qt.Key_Return:
             self.query_click()
-        if e.key() == Qt.Key_F5:
+        if e.key() == Qt.Key_F1:
             self.clear_click()
 
 
@@ -833,7 +877,7 @@ class QueryWindow(QWidget):
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     app.setWindowIcon(QIcon('octo.png'))
-#    mainWindow = SignInWidget()
+    # mainWindow = SignInWidget()
     mainWindow = ListWindow()
     mainWindow.show()
     sys.exit(app.exec_())

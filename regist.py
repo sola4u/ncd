@@ -643,7 +643,9 @@ class QueryWindow(QWidget):
     def __init__(self):
         super(QueryWindow,self).__init__()
         self.setWindowTitle('查询')
-        self.setFixedSize(1200,960)
+        # self.setFixedSize(1200,960)
+        self.resize(1080, 720)
+        self.move(50, 50)
         self.set_ui()
 
 
@@ -658,10 +660,14 @@ class QueryWindow(QWidget):
         self.exportbnt = QPushButton('导出')
         self.exportbnt.clicked.connect(self.export_click)
         self.table = QTableWidget(20,11)
+        self.preview_bnt = QPushButton('<')
+        self.next_bnt = QPushButton('>')
+        self.page = QLineEdit()
+
 
         self.namelabel = QLabel('姓名')
         self.name = QLineEdit()
-        self.idlabel = QLabel("编号")
+        self.idlabel = QLabel("身份证号码")
         self.id = QLineEdit()
         self.begin_date_label = QLabel('开始日期')
         self.begin_date = QDateEdit()
@@ -671,6 +677,16 @@ class QueryWindow(QWidget):
         self.end_date = QDateEdit(QDate.currentDate())
         self.end_date_choice = QPushButton("↓")
         self.end_date_choice.clicked.connect(self.end_date_input)
+        self.all_record = QRadioButton('所有个案')
+        self.all_record.setChecked(True)
+        self.no_del_record = QRadioButton("不含删除个案")
+        self.no_del_record.setChecked(False)
+        self.death_date = QRadioButton('按死亡日期')
+        self.death_date.setChecked(True)
+        self.report_date = QRadioButton('按报告日期')
+        self.report_date.setChecked(False)
+        self.tab_space = QLabel("------------------------")
+        self.tab_space2 = QLabel("------------")
 
         self.demand_box = QGridLayout()
         self.demand_box.addWidget(self.namelabel,0,0,1,1)
@@ -684,28 +700,59 @@ class QueryWindow(QWidget):
         self.demand_box.addWidget(self.end_date,0,10,1,5)
         self.demand_box.addWidget(self.end_date_choice,0,16,1,1)
 
+        self.choice_box = QGridLayout()
+        self.record_choice_box = QHBoxLayout()
+        self.date_choice_box = QHBoxLayout()
+        self.record_choice_box.addWidget(self.all_record)
+        self.record_choice_box.addWidget(self.no_del_record)
+        self.date_choice_box.addWidget(self.death_date)
+        self.date_choice_box.addWidget(self.report_date)
+
+        self.record_choice_layout = QWidget()
+        self.date_choice_layout = QWidget()
+        self.record_choice_layout.setLayout(self.record_choice_box)
+        self.date_choice_layout.setLayout(self.date_choice_box)
+
+        self.choice_box.addWidget(self.record_choice_layout,1,0,1,3)
+        self.choice_box.addWidget(self.tab_space,1,3,1,1)
+        self.choice_box.addWidget(self.date_choice_layout,1,4,1,1)
+
         self.bnt_box = QGridLayout()
         self.bnt_box.addWidget(self.querybnt,0,1,1,1)
         self.bnt_box.addWidget(self.clearbnt,0,2,1,1)
         self.bnt_box.addWidget(self.exportbnt,0,3,1,1)
         self.bnt_box.addWidget(self.closebnt,0,4,1,1)
 
+        self.page_box = QGridLayout()
+        self.page_box.addWidget(self.tab_space2,0,0,1,1)
+        self.page_box.addWidget(self.preview_bnt,0,1,1,1)
+        self.page_box.addWidget(self.page,0,2,1,1)
+        self.page_box.addWidget(self.next_bnt,0,3,1,1)
+
         self.demand_box_layout = QWidget()
         self.bnt_box_layout = QWidget()
+        self.choice_box_layout = QWidget()
+        self.page_box_layout = QWidget()
 
         self.demand_box_layout.setLayout(self.demand_box)
         self.bnt_box_layout.setLayout(self.bnt_box)
+        self.choice_box_layout.setLayout(self.choice_box)
+        self.page_box_layout.setLayout(self.page_box)
 
-        self.table.verticalHeader().setVisible(False)
-        self.table.setHorizontalHeaderLabels(['编号','姓名','身份照号码','性别','出生日期','常住地址','死亡日期','死亡原因','登记日期','是否报告','操作'])
+        self.table.verticalHeader().setVisible(True)
+        self.table.setHorizontalHeaderLabels(['编号','姓名','身份证号码','性别','出生日期','常住地址','死亡日期','死亡原因','登记日期','是否报告','操作'])
+        self.table.resizeColumnToContents(3)
 
 
         self.head_box = QGridLayout()
-        self.head_box.addWidget(self.demand_box_layout,0,0,1,1)
-        self.head_box.addWidget(self.bnt_box_layout,0,1,1,1)
-        self.head_box.addWidget(self.table,1,0,1,2)
+        self.head_box.addWidget(self.demand_box_layout,0,0,1,10)
+        self.head_box.addWidget(self.bnt_box_layout,0,11,1,4)
+        self.head_box.addWidget(self.choice_box_layout,1,0,1,5)
+        self.head_box.addWidget(self.page_box_layout,1,12,1,3)
+        self.head_box.addWidget(self.table,2,0,1,15)
 
         self.setLayout(self.head_box)
+
 
     def back_click(self):
         self.close()
@@ -716,10 +763,31 @@ class QueryWindow(QWidget):
     def query_click(self):
         con = sqlite3.connect('basetable.db')
         cur = con.cursor()
-        cur.execute('select serialnumber,name,id,gender,birthday,address,deathdate,disease,regist_date,is_deleted from base')
-        msg = cur.fetchall()
+        if self.name.text() == '':
+            name_sql = ' and name like "%"'
+        else:
+            name_sql = ' and name like "%s"'%(self.name.text())
+
+        if self.all_record.isChecked():
+            is_deleted_sql = ''
+        else:
+            is_deleted_sql = 'and is_deleted = 0 '
+        if self.death_date.isChecked():
+            date_sql = 'deathdate'
+        else:
+            date_sql = 'regist_date'
+        sql = '''
+            select serialnumber,name,id,gender,birthday,address,deathdate,disease,regist_date,is_deleted from base where date2 between 1 and 1535558400
+            '''
+        sql2 = sql.replace('date2',date_sql) + is_deleted_sql + name_sql
+        print(is_deleted_sql,date_sql)
+        print(sql2)
+        cur.execute(sql2)
+        # cur.execute('select serialnumber,name,id,gender,birthday,address,deathdate,disease,regist_date,is_deleted from base')
+        rslt =  cur.fetchall()
+        self.page.setText(str(len(rslt)%20))
         k = 0
-        for i in msg:
+        for i in rslt:
             for j in range(9):
                 if j in [4,6,8]:
                     self.table.setItem(k,j,QTableWidgetItem(self.to_date(i[j])))
@@ -731,7 +799,6 @@ class QueryWindow(QWidget):
     def button_row(self, id):
         self.widget = QWidget()
         self.query_id = id
-        # self.edit_bnt = QPushButton('修改')
         self.view_bnt = QPushButton('查看')
         self.del_bnt = QPushButton('删除')
         self.regret_bnt = QPushButton('恢复')
@@ -754,8 +821,6 @@ class QueryWindow(QWidget):
                                        height:20px;
                                        color:white;
                                     ''')
-        # self.del_bnt.clicked.connect(self.del_record)
-        # self.regret_bnt.clicked.connect(self.regret_record)
 
         self.hlayout = QHBoxLayout()
         con = sqlite3.connect('basetable.db')

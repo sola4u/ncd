@@ -682,9 +682,9 @@ class QueryWindow(QWidget):
         self.no_del_record = QRadioButton("不含删除个案")
         self.no_del_record.setChecked(False)
         self.death_date = QRadioButton('按死亡日期')
-        self.death_date.setChecked(True)
-        self.report_date = QRadioButton('按报告日期')
-        self.report_date.setChecked(False)
+        self.death_date.setChecked(False)
+        self.report_date = QRadioButton('按登记日期')
+        self.report_date.setChecked(True)
         self.tab_space = QLabel("------------------------")
         self.tab_space2 = QLabel("------------")
 
@@ -705,8 +705,8 @@ class QueryWindow(QWidget):
         self.date_choice_box = QHBoxLayout()
         self.record_choice_box.addWidget(self.all_record)
         self.record_choice_box.addWidget(self.no_del_record)
-        self.date_choice_box.addWidget(self.death_date)
         self.date_choice_box.addWidget(self.report_date)
+        self.date_choice_box.addWidget(self.death_date)
 
         self.record_choice_layout = QWidget()
         self.date_choice_layout = QWidget()
@@ -766,7 +766,8 @@ class QueryWindow(QWidget):
         if self.name.text() == '':
             name_sql = ' and name like "%"'
         else:
-            name_sql = ' and name like "%s"'%(self.name.text())
+            name_text = '%' + self.name.text() + '%'
+            name_sql = ' and name like "%s"'%(name_text)
 
         if self.all_record.isChecked():
             is_deleted_sql = ''
@@ -776,17 +777,24 @@ class QueryWindow(QWidget):
             date_sql = 'deathdate'
         else:
             date_sql = 'regist_date'
+        a = RegistWindow()
+        begin_date_interge = a.change_date(self.begin_date)
+        end_date_interge = a.change_date(self.end_date)
         sql = '''
-            select serialnumber,name,id,gender,birthday,address,deathdate,disease,regist_date,is_deleted from base where date2 between 1 and 1535558400
-            '''
-        sql2 = sql.replace('date2',date_sql) + is_deleted_sql + name_sql
-        print(is_deleted_sql,date_sql)
-        print(sql2)
+            select serialnumber,name,id,gender,birthday,address,deathdate,disease,regist_date,is_deleted from base where date2 between %d and %d
+            '''%(begin_date_interge,end_date_interge)
+        if self.id.text() != "":
+            sql2 = 'select serialnumber,name,id,gender,birthday,address,deathdate,disease,regist_date,is_deleted from base where id = %s'%(self.id.text())
+        else:
+            sql2 = sql.replace('date2',date_sql) + is_deleted_sql + name_sql
         cur.execute(sql2)
         # cur.execute('select serialnumber,name,id,gender,birthday,address,deathdate,disease,regist_date,is_deleted from base')
         rslt =  cur.fetchall()
+        print(rslt)
         self.page.setText(str(len(rslt)%20))
         k = 0
+        self.table.clear()
+        self.table.setHorizontalHeaderLabels(['编号','姓名','身份证号码','性别','出生日期','常住地址','死亡日期','死亡原因','登记日期','是否报告','操作'])
         for i in rslt:
             for j in range(9):
                 if j in [4,6,8]:

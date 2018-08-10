@@ -654,15 +654,18 @@ class QueryWindow(QWidget):
         self.closebnt = QPushButton('关闭(ESC)')
         self.closebnt.clicked.connect(self.back_click)
         self.querybnt = QPushButton('查询(ENT)')
-        self.querybnt.clicked.connect(self.query_click)
+        self.querybnt.clicked.connect(lambda:self.query_click())
         self.clearbnt = QPushButton('清空(F1)')
         self.clearbnt.clicked.connect(self.clear_click)
         self.exportbnt = QPushButton('导出')
         self.exportbnt.clicked.connect(self.export_click)
         self.table = QTableWidget(20,11)
-        self.preview_bnt = QPushButton('<')
-        self.next_bnt = QPushButton('>')
-        self.page = QLineEdit()
+        self.pre_bnt = QPushButton('<上一页')
+        self.next_bnt = QPushButton('下一页>')
+        self.page = QLabel()
+        self.pre_bnt.clicked.connect(self.pre_page)
+        self.next_bnt.clicked.connect(self.next_page)
+
 
 
         self.namelabel = QLabel('姓名')
@@ -686,7 +689,7 @@ class QueryWindow(QWidget):
         self.report_date = QRadioButton('按登记日期')
         self.report_date.setChecked(True)
         self.tab_space = QLabel("------------------------")
-        self.tab_space2 = QLabel("------------")
+        self.tab_space2 = QLabel("------------------")
 
         self.demand_box = QGridLayout()
         self.demand_box.addWidget(self.namelabel,0,0,1,1)
@@ -725,7 +728,7 @@ class QueryWindow(QWidget):
 
         self.page_box = QGridLayout()
         self.page_box.addWidget(self.tab_space2,0,0,1,1)
-        self.page_box.addWidget(self.preview_bnt,0,1,1,1)
+        self.page_box.addWidget(self.pre_bnt,0,1,1,1)
         self.page_box.addWidget(self.page,0,2,1,1)
         self.page_box.addWidget(self.next_bnt,0,3,1,1)
 
@@ -760,7 +763,9 @@ class QueryWindow(QWidget):
         self.a.show()
 
 
-    def query_click(self):
+    def query_click(self,start = 0, numbers = 20):
+        self.numbers = numbers
+        self.start = start
         con = sqlite3.connect('basetable.db')
         cur = con.cursor()
         if self.name.text() == '':
@@ -784,14 +789,17 @@ class QueryWindow(QWidget):
             select serialnumber,name,id,gender,birthday,address,deathdate,disease,regist_date,is_deleted from base where date2 between %d and %d
             '''%(begin_date_interge,end_date_interge)
         if self.id.text() != "":
-            sql2 = 'select serialnumber,name,id,gender,birthday,address,deathdate,disease,regist_date,is_deleted from base where id = %s'%(self.id.text())
+            sql2 = 'select serialnumber,name,id,gender,birthday,address,deathdate,disease,regist_date,is_deleted from base where id = %s limit 20 offset %d'%(self.id.text(),self.start)
+            sql2 = 'select serialnumber,name,id,gender,birthday,address,deathdate,disease,regist_date,is_deleted from base where id = %s '%(self.id.text())
         else:
-            sql2 = sql.replace('date2',date_sql) + is_deleted_sql + name_sql
-        cur.execute(sql2)
-        # cur.execute('select serialnumber,name,id,gender,birthday,address,deathdate,disease,regist_date,is_deleted from base')
-        rslt =  cur.fetchall()
-        print(rslt)
-        self.page.setText(str(len(rslt)%20))
+            sql2 = sql.replace('date2',date_sql) + is_deleted_sql + name_sql + '  limit 20 offset %d'%(self.start)
+            sql3 = sql.replace('date2',date_sql) + is_deleted_sql + name_sql
+        rlst_exec = cur.execute(sql2)
+        rslt =  rlst_exec.fetchall()
+        count = len(cur.execute(sql3).fetchall())
+        pages = int(count/20)+1
+        pages2 = '共' + str(count) +'条,共' + str(pages) + '页'
+        self.page.setText(pages2)
         k = 0
         self.table.clear()
         self.table.setHorizontalHeaderLabels(['编号','姓名','身份证号码','性别','出生日期','常住地址','死亡日期','死亡原因','登记日期','是否报告','操作'])
@@ -936,6 +944,12 @@ class QueryWindow(QWidget):
 
     def end_date_confirm(self, date):
         self.end_date.setDate(date)
+
+    def next_page(self):
+        self.query_click(start=20)
+
+    def pre_page(self):
+        self.query_click(start=0)
 
     def keyPressEvent(self, e):
         if e.key() == Qt.Key_Escape:

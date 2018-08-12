@@ -790,15 +790,17 @@ class QueryWindow(QWidget):
         sql = '''
             select serialnumber,name,id,gender,birthday,address,deathdate,disease,regist_date,is_deleted from base where date2 between %d and %d
             '''%(begin_date_interge,end_date_interge)
+        number_sql = 'select count(*) from base where date2 between %d and %d '%(begin_date_interge,end_date_interge)
         if self.id.text() != "":
             sql2 = 'select serialnumber,name,id,gender,birthday,address,deathdate,disease,regist_date,is_deleted from base where id = %s limit %d offset %d'%(self.id.text(),self.numbers, self.start)
-            sql3 = 'select serialnumber,name,id,gender,birthday,address,deathdate,disease,regist_date,is_deleted from base where id = %s '%(self.id.text())
+            sql3 = 'select count(*) from base where id = %s '%(self.id.text())
         else:
             sql2 = sql.replace('date2',date_sql) + is_deleted_sql + name_sql + '  limit %d offset %d'%(self.numbers,self.start)
-            sql3 = sql.replace('date2',date_sql) + is_deleted_sql + name_sql
+            sql3 = number_sql.replace('date2',date_sql) + is_deleted_sql + name_sql
         rlst_exec = cur.execute(sql2)
         rslt =  rlst_exec.fetchall()
-        count = len(cur.execute(sql3).fetchall())
+        # count = len(cur.execute(sql3).fetchall())
+        count = cur.execute(sql3).fetchone()[0]
         pages = ceil(count/self.numbers)
         pages_text = '共' + str(count) +'条 ' + str(pages) + '页，第' + str(self.this_page) +'页'
         self.page.setText(pages_text)

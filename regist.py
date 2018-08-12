@@ -10,6 +10,7 @@ import sqlite3
 import area
 import time
 import datetime
+from math import ceil
 #import qdarkstyle
 
 class SignInWidget(QWidget):
@@ -665,7 +666,8 @@ class QueryWindow(QWidget):
         self.page = QLabel()
         self.pre_bnt.clicked.connect(self.pre_page)
         self.next_bnt.clicked.connect(self.next_page)
-
+        self.this_page = 1
+        self.max_page = 1
 
 
         self.namelabel = QLabel('姓名')
@@ -764,7 +766,7 @@ class QueryWindow(QWidget):
 
 
     def query_click(self,start = 0, numbers = 20):
-        self.numbers = numbers
+        self.numbers =  numbers
         self.start = start
         con = sqlite3.connect('basetable.db')
         cur = con.cursor()
@@ -789,17 +791,18 @@ class QueryWindow(QWidget):
             select serialnumber,name,id,gender,birthday,address,deathdate,disease,regist_date,is_deleted from base where date2 between %d and %d
             '''%(begin_date_interge,end_date_interge)
         if self.id.text() != "":
-            sql2 = 'select serialnumber,name,id,gender,birthday,address,deathdate,disease,regist_date,is_deleted from base where id = %s limit 20 offset %d'%(self.id.text(),self.start)
-            sql2 = 'select serialnumber,name,id,gender,birthday,address,deathdate,disease,regist_date,is_deleted from base where id = %s '%(self.id.text())
+            sql2 = 'select serialnumber,name,id,gender,birthday,address,deathdate,disease,regist_date,is_deleted from base where id = %s limit %d offset %d'%(self.id.text(),self.numbers, self.start)
+            sql3 = 'select serialnumber,name,id,gender,birthday,address,deathdate,disease,regist_date,is_deleted from base where id = %s '%(self.id.text())
         else:
-            sql2 = sql.replace('date2',date_sql) + is_deleted_sql + name_sql + '  limit 20 offset %d'%(self.start)
+            sql2 = sql.replace('date2',date_sql) + is_deleted_sql + name_sql + '  limit %d offset %d'%(self.numbers,self.start)
             sql3 = sql.replace('date2',date_sql) + is_deleted_sql + name_sql
         rlst_exec = cur.execute(sql2)
         rslt =  rlst_exec.fetchall()
         count = len(cur.execute(sql3).fetchall())
-        pages = int(count/20)+1
-        pages2 = '共' + str(count) +'条,共' + str(pages) + '页'
-        self.page.setText(pages2)
+        pages = ceil(count/self.numbers)
+        pages_text = '共' + str(count) +'条 ' + str(pages) + '页，第' + str(self.this_page) +'页'
+        self.page.setText(pages_text)
+        self.max_page = pages
         k = 0
         self.table.clear()
         self.table.setHorizontalHeaderLabels(['编号','姓名','身份证号码','性别','出生日期','常住地址','死亡日期','死亡原因','登记日期','是否报告','操作'])
@@ -946,10 +949,22 @@ class QueryWindow(QWidget):
         self.end_date.setDate(date)
 
     def next_page(self):
-        self.query_click(start=20)
+        self.this_page += 1
+        if self.this_page < self.max_page:
+            a =  (self.this_page-1) * 20
+        else:
+            a = (self.max_page-1)*20
+            self.this_page = self.max_page
+        self.query_click(start=a)
 
     def pre_page(self):
-        self.query_click(start=0)
+        self.this_page -= 1
+        if self.this_page == 0:
+            self.this_page = 1
+        else:
+            self.this_page = self.this_page
+        a = (self.this_page-1)*20
+        self.query_click(start=a)
 
     def keyPressEvent(self, e):
         if e.key() == Qt.Key_Escape:

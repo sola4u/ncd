@@ -599,9 +599,10 @@ class PrintWindow(QWidget):
         cur = con.cursor()
         cur.execute('select * from base where serialnumber = %s'%self.serialnumber)
         rslt = cur.fetchone()
+        print(rslt,rslt[1])
         try:
-            if rslt[0]:
-                text = rslt[0] +','+ rslt[2] +','+ rslt[3] +',' + self.change_date(rslt[4])+'出生,身份证号：'+ rslt[1]+','+ rslt[5]+'人,' + self.change_date(rslt[6]) + '因' +rslt[7] + '去世，特此证明！'
+            if rslt[1]:
+                text = rslt[1] +','+ rslt[3] +','+ rslt[4] +',' + self.change_date(rslt[5])+'出生,身份证号：'+ rslt[2]+','+ rslt[6]+'人,' + self.change_date(rslt[7]) + '因' +rslt[8] + '去世，特此证明！'
         except:
             text = '姓名未填写！！！！'
 
@@ -800,7 +801,6 @@ class QueryWindow(QWidget):
             sql3 = number_sql.replace('date2',date_sql) + is_deleted_sql + name_sql
         rlst_exec = cur.execute(sql2)
         rslt =  rlst_exec.fetchall()
-        # count = len(cur.execute(sql3).fetchall())
         count = cur.execute(sql3).fetchone()[0]
         pages = ceil(count/self.numbers)
         pages_text = '共' + str(count) +'条 ' + str(pages) + '页，第' + str(self.this_page) +'页'
@@ -868,6 +868,7 @@ class QueryWindow(QWidget):
         b = cur.fetchone()
         self.a = RegistWindow()
         self.a.serialnumber.setText(b[0])
+        self.a.serialnumber.setReadOnly(True)
         self.a.name.setText(b[1])
         self.a.id.setText(b[2])
         self.a.gender.setText(b[3])

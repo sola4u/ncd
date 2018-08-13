@@ -11,6 +11,7 @@ import area
 import time
 import datetime
 from math import ceil
+import xlwt
 #import qdarkstyle
 
 class SignInWidget(QWidget):
@@ -447,7 +448,7 @@ class RegistWindow(QWidget):
 
     def print_record(self):
         self.save_record()
-        self.close()
+        # self.close()
         self.b = PrintWindow(self.serialnumber2)
         self.b.show()
 
@@ -628,8 +629,8 @@ class PrintWindow(QWidget):
 
     def back_click(self):
         self.close()
-        self.a = ListWindow()
-        self.a.show()
+        # self.a = ListWindow()
+        # self.a.show()
 
     def print_record(self):
         pass
@@ -932,12 +933,61 @@ class QueryWindow(QWidget):
 
 
     def export_click(self):
-        pass
+        con = sqlite3.connect('basetable.db')
+        cur = con.cursor()
+        if self.name.text() == '':
+            name_sql = ' and name like "%"'
+        else:
+            name_text = '%' + self.name.text() + '%'
+            name_sql = ' and name like "%s"'%(name_text)
+
+        if self.all_record.isChecked():
+            is_deleted_sql = ''
+        else:
+            is_deleted_sql = 'and is_deleted = 0 '
+        if self.death_date.isChecked():
+            date_sql = 'deathdate'
+        else:
+            date_sql = 'regist_date'
+        a = RegistWindow()
+        begin_date_interge = a.change_date(self.begin_date)
+        end_date_interge = a.change_date(self.end_date)
+        sql = '''
+            select serialnumber,name,id,gender,birthday,address,deathdate,disease,regist_date,is_deleted from base where date2 between %d and %d
+            '''%(begin_date_interge,end_date_interge)
+        number_sql = 'select * from base where date2 between %d and %d '%(begin_date_interge,end_date_interge)
+        if self.id.text() != "":
+            sql3 = 'select * from base where id = %s '%(self.id.text())
+        else:
+            sql3 = number_sql.replace('date2',date_sql) + is_deleted_sql + name_sql
+        cur.execute(sql3)
+        rslt = cur.fetchall()
+
+        file, ok = QFileDialog.getSaveFileName(self,'文件保存','/','Excel Files (*.xls)')
+        workbook = xlwt.Workbook(encoding='utf8')
+        worksheet = workbook.add_sheet("sheet1")
+        head = ['编号','姓名','身份证号码','性别','民族','出生日期','住址','死亡日期','死因','联系人','联系方式','登记日期','备注','是否删除']
+        date_style = xlwt.XFStyle()
+        date_style.num_format_str = 'yyyy/mm/dd'
+        k = len(rslt)
+        for i in range(k+1) :
+            if i == 0:
+                for j in range(14):
+                    worksheet.write(i,j,head[j])
+            else:
+                for j in range(14):
+                    if j in [5,7,11]:
+                        worksheet.write(i,j,rslt[i-1][j]/3600/24+25570,date_style)
+                    else:
+                        worksheet.write(i,j,rslt[i-1][j])
+        workbook.save(file)
+        QMessageBox.warning(self,'success','保存成功')
+        con.close()
 
     def begin_date_input(self):
         self.a = Calendar()
         self.a.show()
-        self.a.date_signal.connect(self.begin_date_confirm)
+        self.a.date_signal.connect(self.begin_dateuuuuunfirm)
 
     def begin_date_confirm(self, date):
         self.begin_date.setDate(date)
@@ -975,8 +1025,6 @@ class QueryWindow(QWidget):
             self.query_click()
         if e.key() == Qt.Key_F1:
             self.clear_click()
-
-
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)

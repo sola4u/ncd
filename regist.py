@@ -5,6 +5,7 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 from PyQt5.QtSql import *
+from PyQt5.QtPrintSupport import QPrinter, QPrintDialog
 import hashlib
 import sqlite3
 import area
@@ -448,9 +449,10 @@ class RegistWindow(QWidget):
 
     def print_record(self):
         self.save_record()
-        # self.close()
+        self.close()
         self.b = PrintWindow(self.serialnumber2)
         self.b.show()
+
 
     def save_record(self):
 
@@ -589,6 +591,9 @@ class Calendar(QWidget):
 class PrintWindow(QWidget):
     def __init__(self,serialnumber):
         super(PrintWindow,self).__init__()
+        self.printer = QPrinter()
+        self.printer.setPageSize(QPrinter.A4)
+
         self.setWindowTitle('打印')
         self.setFixedSize(400,600)
         self.serialnumber = serialnumber
@@ -599,7 +604,6 @@ class PrintWindow(QWidget):
         cur = con.cursor()
         cur.execute('select * from base where serialnumber = %s'%self.serialnumber)
         rslt = cur.fetchone()
-        print(rslt,rslt[1])
         try:
             if rslt[1]:
                 text = rslt[1] +','+ rslt[3] +','+ rslt[4] +',' + self.change_date(rslt[5])+'出生,身份证号：'+ rslt[2]+','+ rslt[6]+'人,' + self.change_date(rslt[7]) + '因' +rslt[8] + '去世，特此证明！'
@@ -634,7 +638,14 @@ class PrintWindow(QWidget):
         # self.a.show()
 
     def print_record(self):
-        pass
+        htmltxt = '<h1 style="text-align:center; font-size:50px"}>证        明</h1></br><p></p><p></p>'
+        # htmltxt += ('<p style="font:30px;text-indent:50px">{0},{1},{2},{3}出生,{4}居民,身份证号码：{5}，{6}因{7}去世，特此证明').format(data[1],data[3],data[4],data[5],data[6],data[2],data[7],data[8])
+        htmltxt += ('<p style="font:30px;text-indext:50px;line-height:30px">{0}</p>').format(self.content.toPlainText())
+        dialog = QPrintDialog(self.printer, self)
+        if dialog.exec_():
+            document = QTextDocument()
+            document.setHtml(htmltxt)
+            document.print_(self.printer)
 
     def change_date(self,a):
         date = datetime.datetime.utcfromtimestamp(a)

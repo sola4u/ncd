@@ -88,14 +88,9 @@ class SignInWidget(QWidget):
         if (username == '' or password == ''):
             print(QMessageBox.warning(self,'alert','用户名或密码为空', QMessageBox.Yes, QMessageBox.Yes))
             return
-#        db = QSqlDatabase.addDatabase("QSQLITE")
-#        db.setDatabaseName('.basetable.db')
-#        db.open()
-#        query = QSqlQuery()
         db = sqlite3.connect('basetable.db')
         query = db.cursor()
         sql = 'SELECT password FROM user WHERE name = "%s"'%(username)
-#        query.exec_(sql)
         a = query.execute(sql)
         b = 0
         for i in a:
@@ -250,7 +245,6 @@ class UserInfoWindow(QWidget):
     def ok_click(self):
         if self.password.text() == self.password2.text():
             a = QMessageBox.information(self,'提示','是否更改信息？',QMessageBox.Yes,QMessageBox.No)
-            #self.message.setText('ok')
             if a == QMessageBox.Yes:
                 h5 = hashlib.md5()
                 h5.update(self.password.text().encode(encoding='utf-8'))
@@ -595,7 +589,7 @@ class PrintWindow(QWidget):
         self.printer.setPageSize(QPrinter.A4)
 
         self.setWindowTitle('打印')
-        self.setFixedSize(400,600)
+        self.setFixedSize(1000,960)
         self.serialnumber = serialnumber
         self.set_ui()
 
@@ -604,11 +598,19 @@ class PrintWindow(QWidget):
         cur = con.cursor()
         cur.execute('select * from base where serialnumber = %s'%self.serialnumber)
         rslt = cur.fetchone()
+        print(rslt,rslt[1])
+        text = '<p style="text-align:center;font:100px">证    明</p></br>'
         try:
-            if rslt[1]:
-                text = rslt[1] +','+ rslt[3] +','+ rslt[4] +',' + self.change_date(rslt[5])+'出生,身份证号：'+ rslt[2]+','+ rslt[6]+'人,' + self.change_date(rslt[7]) + '因' +rslt[8] + '去世，特此证明！'
+            if rslt[1] != '':
+                text2 = ''' <p style="text-indent:50px;font:50px:> {0} +','+ {1} +','+ {2} +',' +
+                            {3}+'出生,身份证号：'+ {4}+','+ {5}+'人,' +
+                            {6} + '因' + {7} + '去世，特此证明！</p></br>
+
+                        '''.format(rslt[1], rslt[3], rslt[4], self.change_date(rslt[5]), rslt[2], rslt[6],self.change_date(rslt[7]),rstl[8])
+                text += '<p>this is a test</p>'
         except:
             text = '姓名未填写！！！！'
+        print(text)
 
 
         self.bnt1 = QPushButton('关闭')
@@ -618,14 +620,8 @@ class PrintWindow(QWidget):
 
         self.vbox = QVBoxLayout()
 
-        self.label = QLabel('证明')
-        self.label.setFont(QFont('Roman Times',16,QFont.Bold))
-        self.label.setAlignment(Qt.AlignCenter)
-
-        self.content = QTextEdit(text)
-        self.content.setStyleSheet('QTextEdit{font-size:15px;text-indent:30px;}')
-
-        self.vbox.addWidget(self.label)
+        self.content = QTextEdit()
+        self.content.insertHtml(text)
         self.vbox.addWidget(self.content)
         self.vbox.addWidget(self.bnt1)
         self.vbox.addWidget(self.bnt2)

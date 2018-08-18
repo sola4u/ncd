@@ -13,7 +13,6 @@ import time
 import datetime
 from math import ceil
 import xlwt
-#import qdarkstyle
 
 class SignInWidget(QWidget):
 #    is_admin_signal = pyqtSignal()
@@ -598,33 +597,46 @@ class PrintWindow(QWidget):
         cur = con.cursor()
         cur.execute('select * from base where serialnumber = %s'%self.serialnumber)
         rslt = cur.fetchone()
-        print(rslt,rslt[1])
-        text = '<p style="text-align:center;font:100px">证    明</p></br>'
+        cur.execute('select department from user')
+        rslt2 = cur.fetchone()
+        text = '''<style>#normal {text-indent:100px;font:40px;line-height:100px;}</style>
+                 <p style="text-align:center;white-space:pre;font:100px">证     明</p><br>'''
         try:
-            if rslt[1] != '':
-                text2 = ''' <p style="text-indent:50px;font:50px:> {0} +','+ {1} +','+ {2} +',' +
-                            {3}+'出生,身份证号：'+ {4}+','+ {5}+'人,' +
-                            {6} + '因' + {7} + '去世，特此证明！</p></br>
-
-                        '''.format(rslt[1], rslt[3], rslt[4], self.change_date(rslt[5]), rslt[2], rslt[6],self.change_date(rslt[7]),rstl[8])
-                text += '<p>this is a test</p>'
+            if rslt:
+                text += '''<p id='normal'>{0}，{1}，{2}，{3}出生，身份证号码：
+                            {4}，常住地址：{5}，{6}因{7}去世，特此证明！</p><br><br><br><br><br><br>
+                            <p id='normal'>申请人：{8}</p>
+                            <p id='normal'>联系方式：{9}</p>
+                            <br>
+                            <br>
+                            <p id = 'normal' style="text-align:right;margin-right:100px">{10}</p>
+                            <p id = 'normal' style="text-align:right;margin-right:100px;">{11}</p>
+                            '''.format(rslt[1],rslt[3],rslt[4],self.change_date(rslt[5]),rslt[2],rslt[6],
+                                self.change_date(rslt[7]),rslt[8],rslt[9],rslt[10],rslt2[0],self.change_date(rslt[11]))
         except:
             text = '姓名未填写！！！！'
-        print(text)
 
 
-        self.bnt1 = QPushButton('关闭')
+        self.bnt1 = QPushButton('关闭(ESC)')
         self.bnt1.clicked.connect(self.back_click)
-        self.bnt2 = QPushButton('打印')
-        self.bnt2.clicked.connect(self.print_record)
+        self.bnt2 = QPushButton('打印(ENT)')
+        self.bnt2.clicked.connect(lambda:self.print_record(text))
 
         self.vbox = QVBoxLayout()
+        self.hbox = QHBoxLayout()
+        self.hbox.addStretch(2)
+        self.hbox.addWidget(self.bnt1)
+        self.hbox.addWidget(self.bnt2)
+
+        self.hbox_layout = QWidget()
+        self.hbox_layout.setLayout(self.hbox)
 
         self.content = QTextEdit()
+        self.content.setStyleSheet('border:hide;')
         self.content.insertHtml(text)
+        print(self.content.toPlainText())
+        self.vbox.addWidget(self.hbox_layout)
         self.vbox.addWidget(self.content)
-        self.vbox.addWidget(self.bnt1)
-        self.vbox.addWidget(self.bnt2)
         self.setLayout(self.vbox)
 
 
@@ -633,10 +645,10 @@ class PrintWindow(QWidget):
         # self.a = ListWindow()
         # self.a.show()
 
-    def print_record(self):
-        htmltxt = '<h1 style="text-align:center; font-size:50px"}>证        明</h1></br><p></p><p></p>'
+    def print_record(self,htmltxt):
+        # htmltxt = '<h1 style="text-align:center; font-size:50px"}>证        明</h1></br><p></p><p></p>'
         # htmltxt += ('<p style="font:30px;text-indent:50px">{0},{1},{2},{3}出生,{4}居民,身份证号码：{5}，{6}因{7}去世，特此证明').format(data[1],data[3],data[4],data[5],data[6],data[2],data[7],data[8])
-        htmltxt += ('<p style="font:30px;text-indext:50px;line-height:30px">{0}</p>').format(self.content.toPlainText())
+        # htmltxt += ('<p style="font:30px;text-indext:50px;line-height:30px">{0}</p>').format(self.content.toPlainText())
         dialog = QPrintDialog(self.printer, self)
         if dialog.exec_():
             document = QTextDocument()
@@ -647,6 +659,12 @@ class PrintWindow(QWidget):
         date = datetime.datetime.utcfromtimestamp(a)
         return str(date.year)+'年'+ str(date.month) +'月'+str(date.day)+'日'
 
+    def keyPressEvent(self, e):
+        if e.key() == Qt.Key_Escape:
+            self.back_click()
+        if e.key() == Qt.Key_Return:
+            self.print_record()
+
 class QueryWindow(QWidget):
 
 
@@ -656,6 +674,8 @@ class QueryWindow(QWidget):
         # self.setFixedSize(1200,960)
         self.resize(1080, 720)
         self.move(50, 50)
+        self.con = sqlite3.connect('basetable.db')
+        self.cur = self.con.cursor()
         self.set_ui()
 
 
@@ -777,8 +797,6 @@ class QueryWindow(QWidget):
     def query_click(self,start = 0, numbers = 20):
         self.numbers =  numbers
         self.start = start
-        con = sqlite3.connect('basetable.db')
-        cur = con.cursor()
         if self.name.text() == '':
             name_sql = ' and name like "%"'
         else:
@@ -806,9 +824,9 @@ class QueryWindow(QWidget):
         else:
             sql2 = sql.replace('date2',date_sql) + is_deleted_sql + name_sql + '  limit %d offset %d'%(self.numbers,self.start)
             sql3 = number_sql.replace('date2',date_sql) + is_deleted_sql + name_sql
-        rlst_exec = cur.execute(sql2)
+        rlst_exec = self.cur.execute(sql2)
         rslt =  rlst_exec.fetchall()
-        count = cur.execute(sql3).fetchone()[0]
+        count = self.cur.execute(sql3).fetchone()[0]
         pages = ceil(count/self.numbers)
         pages_text = '共' + str(count) +'条 ' + str(pages) + '页，第' + str(self.this_page) +'页'
         self.page.setText(pages_text)
@@ -852,10 +870,10 @@ class QueryWindow(QWidget):
                                     ''')
 
         self.hlayout = QHBoxLayout()
-        con = sqlite3.connect('basetable.db')
-        cur = con.cursor()
-        cur.execute('select * from base where serialnumber = %s'%(self.query_id))
-        a = cur.fetchone()
+        # con = sqlite3.connect('basetable.db')
+        # cur = con.cursor()
+        self.cur.execute('select * from base where serialnumber = %s'%(self.query_id))
+        a = self.cur.fetchone()
         if a[-1] == 1:
             self.hlayout.addWidget(self.regret_bnt)
         else:
@@ -869,10 +887,10 @@ class QueryWindow(QWidget):
         return self.widget
 
     def view_record(self,id):
-        con = sqlite3.connect('basetable.db')
-        cur = con.cursor()
-        cur.execute('select * from base where serialnumber = %s'%(id))
-        b = cur.fetchone()
+        # con = sqlite3.connect('basetable.db')
+        # cur = con.cursor()
+        self.cur.execute('select * from base where serialnumber = %s'%(id))
+        b = self.cur.fetchone()
         self.a = RegistWindow()
         self.a.serialnumber.setText(b[0])
         self.a.serialnumber.setReadOnly(True)
@@ -902,27 +920,27 @@ class QueryWindow(QWidget):
         self.a.show()
 
     def del_record(self, id):
-        con = sqlite3.connect('basetable.db')
-        cur = con.cursor()
-        cur.execute('update base set is_deleted = 1 where serialnumber = %s'%(id))
+        # con = sqlite3.connect('basetable.db')
+        # cur = con.cursor()
+        self.cur.execute('update base set is_deleted = 1 where serialnumber = %s'%(id))
         a = QMessageBox.information(self,'提示','是否更改信息？',QMessageBox.Yes,QMessageBox.No)
         if a == QMessageBox.Yes:
-            con.commit()
+            self.con.commit()
         else:
             pass
-        con.close()
+        # con.close()
         self.query_click()
 
     def regret_record(self, id):
-        con = sqlite3.connect('basetable.db')
-        cur = con.cursor()
-        cur.execute('update base set is_deleted = 0 where serialnumber = %s'%(id))
+        # con = sqlite3.connect('basetable.db')
+        # cur = con.cursor()
+        self.cur.execute('update base set is_deleted = 0 where serialnumber = %s'%(id))
         a = QMessageBox.information(self,'提示','是否更改信息？',QMessageBox.Yes,QMessageBox.No)
         if a == QMessageBox.Yes:
-            con.commit()
+            self.con.commit()
         else:
             pass
-        con.close()
+        # con.close()
         self.query_click()
 
     def to_pydate(self,a):
@@ -941,8 +959,8 @@ class QueryWindow(QWidget):
 
 
     def export_click(self):
-        con = sqlite3.connect('basetable.db')
-        cur = con.cursor()
+        # con = sqlite3.connect('basetable.db')
+        # cur = con.cursor()
         if self.name.text() == '':
             name_sql = ' and name like "%"'
         else:
@@ -968,8 +986,8 @@ class QueryWindow(QWidget):
             sql3 = 'select * from base where id = %s '%(self.id.text())
         else:
             sql3 = number_sql.replace('date2',date_sql) + is_deleted_sql + name_sql
-        cur.execute(sql3)
-        rslt = cur.fetchall()
+        self.cur.execute(sql3)
+        rslt = self.cur.fetchall()
 
         file, ok = QFileDialog.getSaveFileName(self,'文件保存','/','Excel Files (*.xls)')
         workbook = xlwt.Workbook(encoding='utf8')
@@ -990,7 +1008,7 @@ class QueryWindow(QWidget):
                         worksheet.write(i,j,rslt[i-1][j])
         workbook.save(file)
         QMessageBox.warning(self,'success','保存成功')
-        con.close()
+        # con.close()
 
     def begin_date_input(self):
         self.a = Calendar()

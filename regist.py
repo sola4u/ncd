@@ -14,13 +14,17 @@ import datetime
 from math import ceil
 import xlwt
 
+'''
+VERSION:0.1.1000
+'''
+
 class SignInWidget(QWidget):
 #    is_admin_signal = pyqtSignal()
 
     def __init__(self):
         super(SignInWidget, self).__init__()
         self.setFixedSize(250, 300)
-        self.setWindowTitle("NCD")
+        self.setWindowTitle("死亡证明")
         self.set_up_ui()
 #        self.setWindowFlags(Qt.FramelessWindowHint)  #设置标题栏透明
 
@@ -37,7 +41,6 @@ class SignInWidget(QWidget):
         self.label1 = QLineEdit()
         self.label1.setPlaceholderText("请输入用户名")
         self.label1.setClearButtonEnabled(True)
-    #    self.label1.setFixedWidth(190)
         self.label1.setFixedHeight(30)
 
         reg = QRegExp('hs[0-9]{3}')
@@ -115,38 +118,39 @@ class ListWindow(QWidget):
 
     def __init__(self):
         super(ListWindow,self).__init__()
-        self.setWindowTitle('main')
-        self.setFixedSize(600, 400)
+        self.setWindowTitle('主页')
+        self.setFixedSize(800, 600)
         self.set_ui()
 
     def set_ui(self):
 
-        self.bnt1 = QPushButton()
-        self.bnt2 = QPushButton()
-        self.bnt3 = QPushButton()
-        self.bnt1.clicked.connect(self.user_change)
-        self.bnt2.clicked.connect(self.back_click)
-        self.bnt3.clicked.connect(self.query_click)
+        self.regist_bnt = QPushButton()
+        self.query_bnt = QPushButton()
+        self.setting_bnt = QPushButton()
+        self.regist_bnt.clicked.connect(self.regist_click)
+        self.query_bnt.clicked.connect(self.query_click)
+        self.setting_bnt.clicked.connect(self.user_change)
 
         self.mainlayout = QVBoxLayout()
-        self.lvl1layout = QHBoxLayout()
+        self.icon_layout = QHBoxLayout()
 
-        self.lvl1layout.addWidget(self.bnt2)
-        self.lvl1layout.addWidget(self.bnt3)
-        self.lvl1layout.addWidget(self.bnt1)
-        self.bnt1.setFixedSize(200,200)
-        self.bnt2.setFixedSize(200,200)
-        self.bnt3.setFixedSize(200,200)
-        self.bnt1.setStyleSheet('QPushButton{background-image:url(img/mobile.png);border:hide;}')
-        self.bnt2.setStyleSheet('QPushButton{background-image:url(img/mdaudio.png);border:hide;}')
-        self.bnt3.setStyleSheet('QPushButton{background-image:url(img/mic.png);border:hide;}')
+        self.icon_layout.addWidget(self.regist_bnt)
+        self.icon_layout.addWidget(self.query_bnt)
+        self.icon_layout.addWidget(self.setting_bnt)
+        self.regist_bnt.setFixedSize(200,200)
+        self.query_bnt.setFixedSize(200,200)
+        self.setting_bnt.setFixedSize(200,200)
+        self.regist_bnt.setStyleSheet('background-image:url(img/regist.png);border:hide;')
+        self.query_bnt.setStyleSheet('background-image:url(img/query.png);border:hide;')
+        self.setting_bnt.setStyleSheet('background-image:url(img/setting.png);border:hide;')
 
-        self.v2box = QWidget()
-        self.v2box.setLayout(self.lvl1layout)
-        self.mainlayout.addWidget(self.v2box)
+
+        self.v1box = QWidget()
+        self.v1box.setLayout(self.icon_layout)
+        self.mainlayout.addWidget(self.v1box)
         self.setLayout(self.mainlayout)
 
-    def back_click(self):
+    def regist_click(self):
         self.close()
         self.a = RegistWindow()
         self.a.show()
@@ -162,13 +166,12 @@ class ListWindow(QWidget):
         self.a.show()
 
 
-
 class UserInfoWindow(QWidget):
 
     def __init__(self):
         super(UserInfoWindow,self).__init__()
         self.setWindowTitle('user infomation')
-        self.setFixedSize(300,400)
+        self.setFixedSize(300, 400)
         self.set_ui()
 
     def set_ui(self):
@@ -182,15 +185,11 @@ class UserInfoWindow(QWidget):
                 infolist.append(i[j])
         db.close()
 
-        self.namelabel = QLabel('用户名  ')
-        self.passwordlabel1= QLabel('输入密码 ')
-        self.passwordlabel2= QLabel('确认密码 ')
-        self.departmentlabel = QLabel('单位名称 ')
 
         self.name = QLineEdit()
         self.name.setText(infolist[0])
         self.name.setReadOnly(True)
-        self.name.setStyleSheet('QLineEdit{background-color:#f0f0f0}')
+        self.name.setStyleSheet('background-color:#f0f0f0;')
 
         self.password= QLineEdit()
         self.password.setPlaceholderText('请输入密码')
@@ -208,10 +207,10 @@ class UserInfoWindow(QWidget):
         self.department.setPlaceholderText('请输入单位名称')
         self.department.setClearButtonEnabled(True)
 
-        self.bnt1 = QPushButton('确定')
-        self.bnt1.clicked.connect(self.ok_click)
-        self.bnt2 = QPushButton('取消(ESC)')
-        self.bnt2.clicked.connect(self.back_click)
+        self.confirm_bnt = QPushButton('确定(ENT)')
+        self.confirm_bnt.clicked.connect(self.ok_click)
+        self.cancel_bnt = QPushButton('取消(ESC)')
+        self.cancel_bnt.clicked.connect(self.back_click)
 
         self.message = QLabel()
         self.message.setStyleSheet('QLabel{color:red;font-size:20px;}')
@@ -221,13 +220,13 @@ class UserInfoWindow(QWidget):
         self.fbox = QFormLayout()
         self.toolbox = QHBoxLayout()
 
-        self.fbox.addRow(self.namelabel,self.name)
-        self.fbox.addRow(self.passwordlabel1,self.password)
-        self.fbox.addRow(self.passwordlabel2, self.password2)
-        self.fbox.addRow(self.departmentlabel,self.department)
+        self.fbox.addRow('姓名',self.name)
+        self.fbox.addRow('密码',self.password)
+        self.fbox.addRow('确认密码',self.password2)
+        self.fbox.addRow('单位名称',self.department)
 
-        self.toolbox.addWidget(self.bnt2)
-        self.toolbox.addWidget(self.bnt1)
+        self.toolbox.addWidget(self.cancel_bnt)
+        self.toolbox.addWidget(self.confirm_bnt)
 
         self.f2box = QWidget()
         self.tool2box = QWidget()
@@ -273,6 +272,8 @@ class UserInfoWindow(QWidget):
     def keyPressEvent(self, e):
         if e.key() == Qt.Key_Escape:
             self.back_click()
+        if e.key() == Qt.Key_Return:
+            self.ok_click()
 
 class RegistWindow(QWidget):
 
@@ -284,17 +285,17 @@ class RegistWindow(QWidget):
 
     def set_ui(self):
 
-        self.bnt1 = QPushButton('返回')
-        self.bnt1.clicked.connect(self.back_click)
+        self.back_bnt = QPushButton('返回(ESC)')
+        self.back_bnt.clicked.connect(self.back_click)
 
-        self.bnt2 = QPushButton('打印')
-        self.bnt2.clicked.connect(self.print_record)
+        self.print_bnt = QPushButton('打印(F5)')
+        self.print_bnt.clicked.connect(self.print_record)
 
-        self.bnt3 = QPushButton('保存')
-        self.bnt3.clicked.connect(self.save_record)
+        self.save_bnt = QPushButton('保存(ENT)')
+        self.save_bnt.clicked.connect(self.save_record)
 
-        self.bnt4 = QPushButton('添加')
-        self.bnt4.clicked.connect(self.add_record)
+        self.add_bnt = QPushButton('添加(F1)')
+        self.add_bnt.clicked.connect(self.add_record)
 
         self.seriallabel = QLabel('编号')
         self.serialnumber = QLineEdit()
@@ -415,10 +416,10 @@ class RegistWindow(QWidget):
         self.gridbox.addWidget(self.regist_date_lable,13,0)
         self.gridbox.addWidget(self.regist_date,13,1,1,2)
 
-        self.hbox.addWidget(self.bnt4)
-        self.hbox.addWidget(self.bnt3)
-        self.hbox.addWidget(self.bnt2)
-        self.hbox.addWidget(self.bnt1)
+        self.hbox.addWidget(self.add_bnt)
+        self.hbox.addWidget(self.save_bnt)
+        self.hbox.addWidget(self.print_bnt)
+        self.hbox.addWidget(self.back_bnt)
 
         self.formbox = QWidget()
         self.h2box = QWidget()
@@ -442,7 +443,7 @@ class RegistWindow(QWidget):
 
     def print_record(self):
         self.save_record()
-        self.close()
+        # self.close()
         self.b = PrintWindow(self.serialnumber2)
         self.b.show()
 
@@ -557,6 +558,16 @@ class RegistWindow(QWidget):
         self.a.show()
 
 
+    def keyPressEvent(self,e):
+        if e.key() == Qt.Key_Return:
+            self.save_record()
+        if e.key() == Qt.Key_Escape:
+            self.back_click()
+        if e.key() == Qt.Key_F1:
+            self.add_record()
+        if e.key() == Qt.Key_F5:
+            self.print_record()
+
 
 class Calendar(QWidget):
 
@@ -634,7 +645,7 @@ class PrintWindow(QWidget):
         self.content = QTextEdit()
         self.content.setStyleSheet('border:hide;')
         self.content.insertHtml(text)
-        print(self.content.toPlainText())
+        # print(self.content.toPlainText())
         self.vbox.addWidget(self.hbox_layout)
         self.vbox.addWidget(self.content)
         self.setLayout(self.vbox)
@@ -870,8 +881,6 @@ class QueryWindow(QWidget):
                                     ''')
 
         self.hlayout = QHBoxLayout()
-        # con = sqlite3.connect('basetable.db')
-        # cur = con.cursor()
         self.cur.execute('select * from base where serialnumber = %s'%(self.query_id))
         a = self.cur.fetchone()
         if a[-1] == 1:
@@ -887,8 +896,6 @@ class QueryWindow(QWidget):
         return self.widget
 
     def view_record(self,id):
-        # con = sqlite3.connect('basetable.db')
-        # cur = con.cursor()
         self.cur.execute('select * from base where serialnumber = %s'%(id))
         b = self.cur.fetchone()
         self.a = RegistWindow()
@@ -913,34 +920,29 @@ class QueryWindow(QWidget):
         regist_list = self.to_pydate(b[11])
         self.a.regist_date.setDate(QDate(regist_list[0],regist_list[1],regist_list[2]))
         self.a.serialnumber2 = b[0]
-        self.a.bnt1.setText('关闭')
-        self.a.bnt1.clicked.disconnect(self.a.back_click)
-        self.a.bnt1.clicked.connect(self.a.close)
-        self.a.bnt1.clicked.connect(self.query_click)
+        self.a.back_bnt.setText('关闭(ESC)')
+        self.a.back_bnt.clicked.disconnect(self.a.back_click)
+        self.a.back_bnt.clicked.connect(self.a.close)
+        self.a.back_bnt.clicked.connect(self.query_click)
+        # self.a.print_bnt.clicked.disconnect(self.a.print_record)
         self.a.show()
 
     def del_record(self, id):
-        # con = sqlite3.connect('basetable.db')
-        # cur = con.cursor()
         self.cur.execute('update base set is_deleted = 1 where serialnumber = %s'%(id))
         a = QMessageBox.information(self,'提示','是否更改信息？',QMessageBox.Yes,QMessageBox.No)
         if a == QMessageBox.Yes:
             self.con.commit()
         else:
             pass
-        # con.close()
         self.query_click()
 
     def regret_record(self, id):
-        # con = sqlite3.connect('basetable.db')
-        # cur = con.cursor()
         self.cur.execute('update base set is_deleted = 0 where serialnumber = %s'%(id))
         a = QMessageBox.information(self,'提示','是否更改信息？',QMessageBox.Yes,QMessageBox.No)
         if a == QMessageBox.Yes:
             self.con.commit()
         else:
             pass
-        # con.close()
         self.query_click()
 
     def to_pydate(self,a):
@@ -959,8 +961,6 @@ class QueryWindow(QWidget):
 
 
     def export_click(self):
-        # con = sqlite3.connect('basetable.db')
-        # cur = con.cursor()
         if self.name.text() == '':
             name_sql = ' and name like "%"'
         else:
@@ -1008,7 +1008,6 @@ class QueryWindow(QWidget):
                         worksheet.write(i,j,rslt[i-1][j])
         workbook.save(file)
         QMessageBox.warning(self,'success','保存成功')
-        # con.close()
 
     def begin_date_input(self):
         self.a = Calendar()

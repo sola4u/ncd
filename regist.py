@@ -599,7 +599,7 @@ class PrintWindow(QWidget):
         self.printer.setPageSize(QPrinter.A4)
 
         self.setWindowTitle('打印')
-        self.setFixedSize(1000,960)
+        self.setFixedSize(680,960)
         self.serialnumber = serialnumber
         self.set_ui()
 
@@ -610,18 +610,23 @@ class PrintWindow(QWidget):
         rslt = cur.fetchone()
         cur.execute('select department from user')
         rslt2 = cur.fetchone()
-        text = '''<style>#normal {text-indent:100px;font:40px;line-height:100px;}</style>
-                 <p style="text-align:center;white-space:pre;font:100px">证     明</p><br>'''
+        text = '''<style>#normal {text-indent:40px;font:24px;line-height:40px;}</style>
+                 <p style="text-align:center;white-space:pre;font:40px">证     明</p><br>'''
         try:
             if rslt:
                 text += '''<p id='normal'>{0}，{1}，{2}，{3}出生，身份证号码：
-                            {4}，常住地址：{5}，{6}因{7}去世，特此证明！</p><br><br><br><br><br><br>
+                            {4}，常住地址：{5}，{6}因{7}去世。</p>
+                            <p id='normal'>特此证明！</p><br><br><br><br><br><br>
                             <p id='normal'>申请人：{8}</p>
                             <p id='normal'>联系方式：{9}</p>
                             <br>
                             <br>
-                            <p id = 'normal' style="text-align:right;margin-right:100px">{10}</p>
-                            <p id = 'normal' style="text-align:right;margin-right:100px;">{11}</p>
+                            <br>
+                            <br>
+                            <br>
+                            <br>
+                            <p id = 'normal' style="text-align:right;margin-right:40px">{10}</p>
+                            <p id = 'normal' style="text-align:right;margin-right:40px;">{11}</p>
                             '''.format(rslt[1],rslt[3],rslt[4],self.change_date(rslt[5]),rslt[2],rslt[6],
                                 self.change_date(rslt[7]),rslt[8],rslt[9],rslt[10],rslt2[0],self.change_date(rslt[11]))
         except:
@@ -632,6 +637,7 @@ class PrintWindow(QWidget):
         self.bnt1.clicked.connect(self.back_click)
         self.bnt2 = QPushButton('打印(ENT)')
         self.bnt2.clicked.connect(lambda:self.print_record(text))
+        # self.bnt2.clicked.connect(lambda:self.print_record(self.content.toPlainText()))
 
         self.vbox = QVBoxLayout()
         self.hbox = QHBoxLayout()
@@ -643,9 +649,9 @@ class PrintWindow(QWidget):
         self.hbox_layout.setLayout(self.hbox)
 
         self.content = QTextEdit()
-        self.content.setStyleSheet('border:hide;')
+        self.content.setStyleSheet('border:hide;background-color:#f0f0f0;')
         self.content.insertHtml(text)
-        # print(self.content.toPlainText())
+        self.content.setReadOnly(True)
         self.vbox.addWidget(self.hbox_layout)
         self.vbox.addWidget(self.content)
         self.setLayout(self.vbox)
@@ -657,14 +663,12 @@ class PrintWindow(QWidget):
         # self.a.show()
 
     def print_record(self,htmltxt):
-        # htmltxt = '<h1 style="text-align:center; font-size:50px"}>证        明</h1></br><p></p><p></p>'
-        # htmltxt += ('<p style="font:30px;text-indent:50px">{0},{1},{2},{3}出生,{4}居民,身份证号码：{5}，{6}因{7}去世，特此证明').format(data[1],data[3],data[4],data[5],data[6],data[2],data[7],data[8])
-        # htmltxt += ('<p style="font:30px;text-indext:50px;line-height:30px">{0}</p>').format(self.content.toPlainText())
         dialog = QPrintDialog(self.printer, self)
         if dialog.exec_():
             document = QTextDocument()
             document.setHtml(htmltxt)
             document.print_(self.printer)
+        self.close()
 
     def change_date(self,a):
         date = datetime.datetime.utcfromtimestamp(a)
@@ -673,8 +677,8 @@ class PrintWindow(QWidget):
     def keyPressEvent(self, e):
         if e.key() == Qt.Key_Escape:
             self.back_click()
-        if e.key() == Qt.Key_Return:
-            self.print_record()
+        # if e.key() == Qt.Key_Return:  #print_record function need a parameter; waiting for reparing.
+        #     self.print_record()
 
 class QueryWindow(QWidget):
 
@@ -860,6 +864,7 @@ class QueryWindow(QWidget):
         self.view_bnt = QPushButton('查看')
         self.del_bnt = QPushButton('删除')
         self.regret_bnt = QPushButton('恢复')
+        self.print_bnt = QPushButton('打印')
 
         self.view_bnt.setStyleSheet('''text-align:center;
                                        background-color:green;
@@ -879,6 +884,12 @@ class QueryWindow(QWidget):
                                        height:20px;
                                        color:white;
                                     ''')
+        self.print_bnt.setStyleSheet('''text-align:center;
+                                       background-color: #660099;
+                                       border-style:outset;
+                                       height:20px;
+                                       color:white;
+                                    ''')
 
         self.hlayout = QHBoxLayout()
         self.cur.execute('select * from base where serialnumber = %s'%(self.query_id))
@@ -887,10 +898,12 @@ class QueryWindow(QWidget):
             self.hlayout.addWidget(self.regret_bnt)
         else:
             self.hlayout.addWidget(self.view_bnt)
+            self.hlayout.addWidget(self.print_bnt)
             self.hlayout.addWidget(self.del_bnt)
         self.view_bnt.clicked.connect(lambda:self.view_record(a[0]))
         self.del_bnt.clicked.connect(lambda:self.del_record(a[0]))
         self.regret_bnt.clicked.connect(lambda:self.regret_record(a[0]))
+        self.print_bnt.clicked.connect(lambda:self.print_record(a[0]))
         self.hlayout.setContentsMargins(5,2,5,2)
         self.widget.setLayout(self.hlayout)
         return self.widget
@@ -945,13 +958,21 @@ class QueryWindow(QWidget):
             pass
         self.query_click()
 
+    def print_record(self, id):
+        self.a = PrintWindow(id)
+        self.a.show()
+
     def to_pydate(self,a):
         b = self.to_date(a).split('-')
         return [int(i) for i in b]
 
     def to_date(self,a):
-        b = datetime.datetime.fromtimestamp(a).strftime('%Y-%m-%d')
-        return b
+        if a < 0:
+            b = datetime.datetime(1970,1,1) + datetime.timedelta(a/3600/24)
+        else:
+            b = datetime.datetime.fromtimestamp(a)
+        c = b.strftime('%Y-%m-%d')
+        return c
 
     def clear_click (self):
         self.name.clear()
@@ -1054,7 +1075,7 @@ class QueryWindow(QWidget):
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     app.setWindowIcon(QIcon('octo.png'))
-    # mainWindow = SignInWidget()
-    mainWindow = ListWindow()
+    mainWindow = SignInWidget()
+    # mainWindow = ListWindow()
     mainWindow.show()
     sys.exit(app.exec_())

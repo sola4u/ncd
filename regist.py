@@ -22,6 +22,7 @@ class DataBase():
     def __init__(self):
         self.con = sqlite3.connect('./basetable.db')
         self.cur = self.con.cursor()
+        self.commit = self.con.commit()
 
     def close(self):
         self.con.close()
@@ -288,10 +289,8 @@ class RegistWindow(QWidget):
         super(RegistWindow,self).__init__()
         self.setWindowTitle('登记')
         self.setFixedSize(400, 600)
-        # self.con = sqlite3.connect('basetable.db')
-        # self.cur = self.con.cursor()
-        self.cur = DataBase().cur
-        self.con = DataBase().con
+        self.con = sqlite3.connect('basetable.db')
+        self.cur = self.con.cursor()
         self.set_ui()
 
     def set_ui(self):
@@ -449,6 +448,7 @@ class RegistWindow(QWidget):
 
     def back_click(self):
         self.close()
+        self.con.close()
         if self.back_bnt.text() == "返回(ESC)":
             self.a = ListWindow()
             self.a.show()
@@ -456,46 +456,39 @@ class RegistWindow(QWidget):
             pass
 
     def print_record(self):
-        self.save_record()
+        # self.save_record()
         # self.close()
         self.b = PrintWindow(self.serialnumber2)
         self.b.show()
 
 
     def save_record(self):
-        data = {'std_serial':self.serialnumber2,
-                'std_name':self.name.text(),
-                'std_id':self.id.text(),
-                'std_gender':self.gender.text(),
-                'std_race':self.race.currentText(),
-                'std_birthday':self.change_date(self.birthday),
-                'std_address':self.address.text(),
-                'std_deathdate':self.change_date(self.deathdate),
-                'std_disease':self.disease.text(),
-                'std_family':self.family.text(),
-                'std_tel':self.tel.text(),
-                'std_regist_date':self.change_date(self.regist_date),
-        }
-        self.cur.execute('select * from base where serialnumber = %s'%(self.serialnumber2))
-        res = self.cur.fetchone()
-        try:
-            if res[0]:
-                sql = '''update base set name = :std_name,gender = :std_gender, id = :std_id,
-                                         race = :std_race, birthday = :std_birthday, address = :std_address,
-                                         deathdate = :std_deathdate, disease = :std_disease, family = :std_family,
-                                         tel = :std_tel, regist_date = :std_regist_date
-                                         WHERE serialnumber = %s'''%(self.serialnumber2)
-                self.cur.execute(sql,data)
-        except:
-            sql = '''insert into base (serialnumber,name,id,gender,race,birthday,address,deathdate,disease,
-                            family,tel,regist_date,is_deleted) values (:std_serial,:std_name,:std_id,:std_gender,:std_race,
-                            :std_birthday,:std_address,:std_deathdate,:std_disease,:std_family,
-                            :std_tel,:std_regist_date,0)'''
-            self.cur.execute(sql,data)
-        if self.name.text() != '':
+        sql = '''insert into base (serialnumber,name,id,gender,race,birthday,address,deathdate,disease,
+                family,tel,regist_date,is_deleted) values ("{0}","{1}","{2}","{3}","{4}",{5},"{6}",{7},
+                "{8}","{9}","{10}",{11},0)'''.format(self.serialnumber2,self.name.text(),self.id.text(),
+                self.gender.text(),self.race.currentText(),self.change_date(self.birthday),self.address.text(),
+                self.change_date(self.deathdate),self.disease.text(),self.family.text(),self.tel.text(),
+                self.change_date(self.regist_date))
+        print(sql)
+        self.cur.execute(sql)
+        if self.name.text() != "":
             self.con.commit()
+            self.save_bnt.clicked.disconnect(self.save_record)
+            self.save_bnt.setText("更新(ENT)")
+            self.save_bnt.clicked.connect(self.update_record)
         else:
             pass
+
+    def update_record(self):
+        sql = '''update base set name = "{0}", id = "{1}",gender = "{2}",race = "{3}",birthday = {4},address = "{5}",
+                deathdate = {6},disease = "{7}",family = "{8}",tel = "{9}",regist_date = {10} where serialnumber = "{11}"
+            '''.format(self.name.text(),self.id.text(),self.gender.text(),self.race.currentText(),
+            self.change_date(self.birthday),self.address.text(),self.change_date(self.deathdate),
+            self.disease.text(),self.family.text(),self.tel.text(),self.change_date(self.regist_date),
+            self.serialnumber2)
+        print(sql)
+        self.cur.execute(sql)
+        self.con.commit()
 
     def show_cal(self):
         self.d = Calendar()
@@ -614,16 +607,18 @@ class PrintWindow(QWidget):
         self.setWindowTitle('打印')
         self.setFixedSize(680,960)
         self.serialnumber = serialnumber
+        self.cur = DataBase().cur
+        self.con = DataBase().con
         self.set_ui()
 
     def set_ui(self):
         # con = sqlite3.connect('basetable.db')
         # cur = con.cursor()
-        cur = DataBase().cur
-        cur.execute('select * from base where serialnumber = %s'%self.serialnumber)
-        rslt = cur.fetchone()
-        cur.execute('select department from user')
-        rslt2 = cur.fetchone()
+        self.cur.execute('select * from base where serialnumber = %s'%self.serialnumber)
+        rslt = self.cur.fetchone()
+        print(rslt)
+        self.cur.execute('select department from user')
+        rslt2 = self.cur.fetchone()
         text = '''<style>#normal {text-indent:40px;font:24px;line-height:40px;}</style>
                  <p style="text-align:center;white-space:pre;font:40px">证     明</p><br>'''
         try:
@@ -645,6 +640,7 @@ class PrintWindow(QWidget):
                                 self.change_date(rslt[7]),rslt[8],rslt[9],rslt[10],rslt2[0],self.change_date(rslt[11]))
         except:
             text = '姓名未填写！！！！'
+        print(text)
 
 
         self.bnt1 = QPushButton('关闭(ESC)')
@@ -673,6 +669,7 @@ class PrintWindow(QWidget):
 
     def back_click(self):
         self.close()
+        self.con.close()
         # self.a = ListWindow()
         # self.a.show()
 
@@ -1088,7 +1085,7 @@ class QueryWindow(QWidget):
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     app.setWindowIcon(QIcon('octo.png'))
-    mainWindow = SignInWidget()
-    # mainWindow = ListWindow()
+    # mainWindow = SignInWidget()
+    mainWindow = ListWindow()
     mainWindow.show()
     sys.exit(app.exec_())

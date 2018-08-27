@@ -1,5 +1,5 @@
 #coding:utf-8
-import sys
+import sys, os
 from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
@@ -20,7 +20,8 @@ VERSION:0.1.1000
 
 class DataBase():
     def __init__(self):
-        self.con = sqlite3.connect('./basetable.db',timeout=5,check_same_thread=False)
+        file_name = os.path.join(os.getcwd(),'basetable.db')
+        self.con = sqlite3.connect(file_name,timeout=5,check_same_thread=False)
         self.cur = self.con.cursor()
 
 

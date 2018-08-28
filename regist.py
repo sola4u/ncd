@@ -8,7 +8,6 @@ from PyQt5.QtSql import *
 from PyQt5.QtPrintSupport import QPrinter, QPrintDialog
 import hashlib
 import sqlite3
-# import area
 import time
 import datetime
 from math import ceil
@@ -21,7 +20,7 @@ VERSION:0.1.1000
 class DataBase():
     def __init__(self):
         file_name = os.path.join(os.getcwd(),'basetable.db')
-        self.con = sqlite3.connect(file_name,timeout=5,check_same_thread=False)
+        self.con = sqlite3.connect(file_name,check_same_thread=False)
         self.cur = self.con.cursor()
 
 
@@ -50,7 +49,7 @@ class SignInWidget(QWidget):
         self.label1.setClearButtonEnabled(True)
         self.label1.setFixedHeight(30)
 
-        reg = QRegExp('hs[0-9]{3}')
+        reg = QRegExp('[a-z]{2}[0-9]{3}')
         pValidator = QRegExpValidator(self)
         pValidator.setRegExp(reg)
         self.label1.setValidator(pValidator)
@@ -97,8 +96,7 @@ class SignInWidget(QWidget):
         if (username == '' or password == ''):
             print(QMessageBox.warning(self,'alert','用户名或密码为空', QMessageBox.Yes, QMessageBox.Yes))
             return
-        # con = sqlite3.connect('basetable.db')
-        # cur = con.cursor()
+
         cur = DataBase().cur
         sql = 'SELECT password FROM user WHERE name = "%s"'%(username)
         a = cur.execute(sql)
@@ -171,6 +169,7 @@ class ListWindow(QWidget):
         self.close()
         self.a = QueryWindow()
         self.a.show()
+        # self.a.showFullScreen()
 
 
 class UserInfoWindow(QWidget):
@@ -179,8 +178,6 @@ class UserInfoWindow(QWidget):
         super(UserInfoWindow,self).__init__()
         self.setWindowTitle('账号信息')
         self.setFixedSize(300, 400)
-        # self.con = sqlite3.connect('basetable.db')
-        # self.cur = con.cursor()
         self.con = DataBase().con
         self.cur = DataBase().cur
         self.set_ui()
@@ -287,8 +284,6 @@ class RegistWindow(QWidget):
         super(RegistWindow,self).__init__()
         self.setWindowTitle('登记')
         self.setFixedSize(400, 600)
-        # self.con = sqlite3.connect('basetable.db')
-        # self.cur = self.con.cursor()
         self.set_ui()
 
     def set_ui(self):
@@ -453,7 +448,7 @@ class RegistWindow(QWidget):
             pass
 
     def print_record(self):
-        if self.save_bnt.text == '保存(F2)':
+        if self.save_bnt.text() == '保存(F2)':
             self.save_record()
         else:
             self.update_record()
@@ -1123,7 +1118,7 @@ class QueryWindow(QWidget):
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     app.setWindowIcon(QIcon('./img/octo.png'))
-    # mainWindow = SignInWidget()
-    mainWindow = ListWindow()
+    mainWindow = SignInWidget()
+    # mainWindow = ListWindow()
     mainWindow.show()
     sys.exit(app.exec_())

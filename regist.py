@@ -94,10 +94,10 @@ class SignInWidget(QWidget):
         username = self.label1.text()
         password = self.label2.text()
         if (username == '' or password == ''):
-            print(QMessageBox.warning(self,'alert','用户名或密码为空', QMessageBox.Yes, QMessageBox.Yes))
+            QMessageBox.warning(self,'提示','用户名或密码为空', QMessageBox.Yes, QMessageBox.Yes)
             return
-
-        cur = DataBase().cur
+        self.db = DataBase()
+        cur = self.db.cur
         sql = 'SELECT password FROM user WHERE name = "%s"'%(username)
         a = cur.execute(sql)
         b = 0
@@ -107,16 +107,17 @@ class SignInWidget(QWidget):
         h1 = hashlib.md5()
         h1.update(password.encode(encoding='utf-8'))
         if ( not b):
-            print(QMessageBox.information(self,'提示','帐号不存在',QMessageBox.Yes,QMessageBox.Yes))
+            QMessageBox.information(self,'提示','帐号不存在',QMessageBox.Yes,QMessageBox.Yes)
         else:
             if h1.hexdigest() == b :
                 #print(QMessageBox.information(self,'提示','帐号存在',QMessageBox.Yes,QMessageBox.Yes))
+                self.db.con.close()
                 mainWindow.close()
                 self.a = ListWindow()
                 self.a.show()
 
             else:
-                print(QMessageBox.information(self,'提示','密码错误',QMessageBox.Yes,QMessageBox.Yes))
+                QMessageBox.information(self,'提示','密码错误',QMessageBox.Yes,QMessageBox.Yes)
         return
 
 class ListWindow(QWidget):
@@ -469,11 +470,8 @@ class RegistWindow(QWidget):
         self.cur = self.db.cur
         if self.name.text() != "":
             self.cur.execute(sql)
-            msg = QMessageBox.information(self,'提示','是否保存信息？',QMessageBox.Yes,QMessageBox.No)
-            if msg == QMessageBox.Yes:
-                self.con.commit()
-            else:
-                pass
+            self.con.commit()
+            QMessageBox.information(self,'提示','保存成功！',QMessageBox.Yes,QMessageBox.Yes)
             self.con.close()
             self.save_bnt.clicked.disconnect(self.save_record)
             self.save_bnt.setText("更新(F2)")
@@ -492,14 +490,8 @@ class RegistWindow(QWidget):
         self.con = self.db.con
         self.cur = self.db.cur
         self.cur.execute(sql)
-        msg = QMessageBox.information(self,'提示','是否更改信息？',QMessageBox.Yes,QMessageBox.No)
-        if msg == QMessageBox.Yes:
-            try:
-                self.con.commit()
-            except:
-                self.con.rollback()
-        else:
-            pass
+        self.con.commit()
+        QMessageBox.information(self,'提示','修改成功！',QMessageBox.Yes,QMessageBox.Yes)
         self.con.close()
 
     def show_cal(self):
@@ -620,21 +612,22 @@ class PrintWindow(QWidget):
         super(PrintWindow,self).__init__()
         self.printer = QPrinter()
         self.printer.setPageSize(QPrinter.A4)
-
+        self.db = DataBase()
+        self.con = self.db.con
+        self.cur = self.db.cur
         self.setWindowTitle('打印')
         self.setFixedSize(680,960)
         self.serialnumber = serialnumber
         self.set_ui()
 
     def set_ui(self):
-        self.cur = DataBase().cur
-        self.con = DataBase().con
         self.cur.execute('select * from base where serialnumber = %s'%self.serialnumber)
         rslt = self.cur.fetchone()
         self.cur.execute('select department from user')
         rslt2 = self.cur.fetchone()
         text = '''<style>#normal {text-indent:40px;font:24px;line-height:40px;}</style>
                  <p style="text-align:center;white-space:pre;font:40px">证     明</p><br>'''
+        self.con.close()
         try:
             if rslt:
                 text += '''<p id='normal'>{0}，{1}，{2}，{3}出生，身份证号码：
@@ -682,7 +675,6 @@ class PrintWindow(QWidget):
 
     def back_click(self):
         self.close()
-        self.con.close()
         # self.a = ListWindow()
         # self.a.show()
 
@@ -711,8 +703,8 @@ class QueryWindow(QWidget):
         super(QueryWindow,self).__init__()
         self.setWindowTitle('查询')
         # self.setFixedSize(1200,960)
-        self.resize(1080, 720)
-        self.move(50, 50)
+        self.resize(960, 720)
+        # self.move(50, 50)
         self.set_ui()
 
 
@@ -920,17 +912,17 @@ class QueryWindow(QWidget):
 
         self.hlayout = QHBoxLayout()
         self.cur.execute('select * from base where serialnumber = %s'%(self.query_id))
-        a = self.cur.fetchone()
-        if a[-1] == 1:
+        rslt = self.cur.fetchone()
+        if rslt[-1] == 1:
             self.hlayout.addWidget(self.regret_bnt)
         else:
             self.hlayout.addWidget(self.view_bnt)
             self.hlayout.addWidget(self.print_bnt)
             self.hlayout.addWidget(self.del_bnt)
-        self.view_bnt.clicked.connect(lambda:self.view_record(a[0]))
-        self.del_bnt.clicked.connect(lambda:self.del_record(a[0]))
-        self.regret_bnt.clicked.connect(lambda:self.regret_record(a[0]))
-        self.print_bnt.clicked.connect(lambda:self.print_record(a[0]))
+        self.view_bnt.clicked.connect(lambda:self.view_record(rslt[0]))
+        self.del_bnt.clicked.connect(lambda:self.del_record(rslt[0]))
+        self.regret_bnt.clicked.connect(lambda:self.regret_record(rslt[0]))
+        self.print_bnt.clicked.connect(lambda:self.print_record(rslt[0]))
         self.hlayout.setContentsMargins(5,2,5,2)
         self.widget.setLayout(self.hlayout)
         return self.widget
@@ -941,6 +933,7 @@ class QueryWindow(QWidget):
         self.cur = DataBase().cur
         self.cur.execute('select * from base where serialnumber = %s'%(id))
         b = self.cur.fetchone()
+        self.con.close()
         self.a = RegistWindow()
         self.a.serialnumber.setText(b[0])
         self.a.serialnumber.setReadOnly(True)
@@ -970,7 +963,6 @@ class QueryWindow(QWidget):
         self.a.save_bnt.clicked.disconnect(self.a.save_record)
         self.a.save_bnt.clicked.connect(self.a.update_record)
         self.a.save_bnt.setText('更新(F2)')
-        self.con.close()
         self.a.show()
 
     def del_record(self, id):
@@ -978,8 +970,8 @@ class QueryWindow(QWidget):
         self.con = self.db.con
         self.cur = self.db.cur
         self.cur.execute('update base set is_deleted = 1 where serialnumber = %s'%(id))
-        a = QMessageBox.information(self,'提示','是否更改信息？',QMessageBox.Yes,QMessageBox.No)
-        if a == QMessageBox.Yes:
+        msg = QMessageBox.information(self,'提示','是否更改信息？',QMessageBox.Yes,QMessageBox.No)
+        if msg == QMessageBox.Yes:
             self.con.commit()
             self.con.close()
         else:
@@ -991,8 +983,8 @@ class QueryWindow(QWidget):
         self.con = self.db.con
         self.cur = self.db.cur
         self.cur.execute('update base set is_deleted = 0 where serialnumber = %s'%(id))
-        a = QMessageBox.information(self,'提示','是否更改信息？',QMessageBox.Yes,QMessageBox.No)
-        if a == QMessageBox.Yes:
+        msg = QMessageBox.information(self,'提示','是否更改信息？',QMessageBox.Yes,QMessageBox.No)
+        if msg == QMessageBox.Yes:
             self.con.commit()
             self.con.close()
         else:
@@ -1118,7 +1110,7 @@ class QueryWindow(QWidget):
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     app.setWindowIcon(QIcon('./img/octo.png'))
-    mainWindow = SignInWidget()
-    # mainWindow = ListWindow()
+    # mainWindow = SignInWidget()
+    mainWindow = ListWindow()
     mainWindow.show()
     sys.exit(app.exec_())

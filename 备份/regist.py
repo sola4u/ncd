@@ -116,7 +116,7 @@ class SignInWidget(QWidget):
 
             else:
                 QMessageBox.information(self,'提示','密码错误',QMessageBox.Yes,QMessageBox.Yes)
-        self.con.close()
+        self.db.con.close()
         return
 
 class ListWindow(QWidget):
